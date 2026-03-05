@@ -16,12 +16,22 @@ JSON array:"""
 
 EXTRACT_ANSWER_SYSTEM_PROMPT = """You are a data extraction assistant. Your task is to analyze scraped web content and extract specific information based on the user's question.
 
-Rules:
-1. Only use information found in the provided content
-2. Be precise and factual
-3. If the information is not found in the content, output ONLY the word "NOTFOUND" (nothing else)
-4. Structure your answer clearly
-5. Include relevant details but avoid unnecessary information"""
+CRITICAL RULES:
+1. ALWAYS return a valid JSON object
+2. Parse the user's question to identify each piece of information requested
+3. Create a JSON key for each piece of information using snake_case
+4. Only use information found in the provided content
+5. If ANY requested information is not found in the content, return ONLY the word "NOTFOUND" (no JSON, no explanation)
+6. Be precise and factual
+7. Include relevant details but avoid unnecessary information
+
+Example:
+Question: "What services does this company offer and what are their top 2 case studies?"
+Response format:
+{
+  "services_offered": "Service 1, Service 2, Service 3...",
+  "case_studies": "Case study 1 description, Case study 2 description..."
+}"""
 
 EXTRACT_ANSWER_USER_PROMPT = """Based on the following scraped content from multiple web pages, answer this question:
 
@@ -33,4 +43,10 @@ EXTRACT_ANSWER_USER_PROMPT = """Based on the following scraped content from mult
 
 --- END OF CONTENT ---
 
-IMPORTANT: If the requested information is NOT found in the scraped content above, respond with ONLY the word "NOTFOUND" (no explanation, no other text). Otherwise, provide a comprehensive answer based solely on the information found."""
+IMPORTANT INSTRUCTIONS:
+1. Analyze the question above and identify each piece of information requested
+2. Return a JSON object with a key for each piece of information (use snake_case for keys)
+3. If you CANNOT find the requested information in the scraped content, respond with ONLY the word "NOTFOUND" (no JSON, no explanation)
+4. If you CAN find the information, provide a comprehensive JSON response based solely on the information found
+
+Return your response as valid JSON:"""
