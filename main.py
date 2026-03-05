@@ -20,8 +20,8 @@ logger = setup_logger(__name__)
 
 PARALLEL_WORKERS = 50
 # Limit concurrent browsers to prevent resource exhaustion
-# Each browser uses ~100 threads, so 5 browsers = ~500 threads (safe limit)
-BROWSER_SEMAPHORE = asyncio.Semaphore(5)
+# Railway containers have strict process limits - keep browsers minimal
+BROWSER_SEMAPHORE = asyncio.Semaphore(2)
 FALLBACK_WORKERS = 20
 ROW_TIMEOUT = 180
 
