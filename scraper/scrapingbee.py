@@ -60,7 +60,7 @@ class ScrapingBeeScraper:
                     params = {
                         "api_key": self.settings.scrapingbee_api_key,
                         "url": url,
-                        "render_js": "false",
+                        "render_js": "true",
                         "premium_proxy": "false",
                     }
                     response = await client.get(SCRAPINGBEE_API_URL, params=params)
