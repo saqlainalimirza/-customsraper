@@ -36,9 +36,9 @@ class ScrapingBeeScraper:
         text = re.sub(r"\s+", " ", text)
         return text.strip()
 
-    async def scrape_main_page(self, domain_or_url: str, max_retries: int = 3) -> tuple[str, str]:
+    async def scrape_main_page(self, domain_or_url: str) -> tuple[str, str]:
         """
-        Scrape only the root page for a domain/url with retry logic.
+        Scrape only the root page for a domain/url.
         Returns (resolved_url, cleaned_text).
         """
         if not self.settings.scrapingbee_api_key:
@@ -55,38 +55,24 @@ class ScrapingBeeScraper:
 
         async with httpx.AsyncClient(timeout=self.settings.scrapingbee_timeout_seconds) as client:
             for url in candidates:
-                for attempt in range(max_retries):
-                    started = time.perf_counter()
-                    try:
-                        params = {
-                            "api_key": self.settings.scrapingbee_api_key,
-                            "url": url,
-                            "render_js": "false",
-                            "premium_proxy": "false",
-                        }
-                        response = await client.get(SCRAPINGBEE_API_URL, params=params)
-                        duration_ms = (time.perf_counter() - started) * 1000
-                        log_request(logger, "GET", url, response.status_code, duration_ms, {"provider": "scrapingbee", "attempt": attempt + 1})
-                        response.raise_for_status()
+                started = time.perf_counter()
+                try:
+                    params = {
+                        "api_key": self.settings.scrapingbee_api_key,
+                        "url": url,
+                        "render_js": "false",
+                        "premium_proxy": "false",
+                    }
+                    response = await client.get(SCRAPINGBEE_API_URL, params=params)
+                    duration_ms = (time.perf_counter() - started) * 1000
+                    log_request(logger, "GET", url, response.status_code, duration_ms, {"provider": "scrapingbee"})
+                    response.raise_for_status()
 
-                        cleaned_text = self._clean_text(response.text)
-                        if cleaned_text and len(cleaned_text) > 100:
-                            return url, cleaned_text[:40000]
-                        logger.warning(f"ScrapingBee returned low-content page for {url}: {len(cleaned_text)} chars")
-                        break  # Don't retry low-content pages
-                    except httpx.HTTPStatusError as exc:
-                        if exc.response.status_code == 429:  # Rate limit
-                            wait_time = 2 ** attempt  # Exponential backoff
-                            logger.warning(f"Rate limited by ScrapingBee, waiting {wait_time}s (attempt {attempt + 1}/{max_retries})")
-                            time.sleep(wait_time)
-                            continue
-                        logger.warning(f"ScrapingBee request failed for {url}: {exc}")
-                        break
-                    except Exception as exc:
-                        logger.warning(f"ScrapingBee request failed for {url} (attempt {attempt + 1}/{max_retries}): {exc}")
-                        if attempt < max_retries - 1:
-                            time.sleep(1)  # Brief delay before retry
-                            continue
-                        break
+                    cleaned_text = self._clean_text(response.text)
+                    if cleaned_text and len(cleaned_text) > 100:
+                        return url, cleaned_text[:40000]
+                    logger.warning(f"ScrapingBee returned low-content page for {url}: {len(cleaned_text)} chars")
+                except Exception as exc:
+                    logger.warning(f"ScrapingBee request failed for {url}: {exc}")
 
         raise ValueError(f"Failed to scrape main page via ScrapingBee for {domain_or_url}")
