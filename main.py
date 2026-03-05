@@ -493,6 +493,7 @@ async def scrape_direct_url(request: DirectScrapeRequest):
     """
     Process a single URL directly without any database interaction.
     Takes a URL, scrapes it, and returns the extracted information.
+    If data not found, automatically falls back to ScrapingBee for deeper scraping.
     """
     logger.info(f"Starting direct scrape for URL={request.url}")
     
@@ -540,10 +541,46 @@ async def scrape_direct_url(request: DirectScrapeRequest):
         
         logger.info(f"[{domain}] Extraction complete: {len(extract_response.content)} chars")
         
+        # Initialize token tracking
+        filter_input_tokens = filter_response.input_tokens
+        filter_output_tokens = filter_response.output_tokens
+        extract_input_tokens = extract_response.input_tokens
+        extract_output_tokens = extract_response.output_tokens
+        extracted_answer = extract_response.content
+        
+        # STEP 5: Check if data was not found and fallback to ScrapingBee
+        if extract_response.content.strip().upper() == "NOTFOUND":
+            logger.warning(f"[{domain}] Data not found with regular scraping, falling back to ScrapingBee")
+            
+            try:
+                # Use ScrapingBee to scrape the main page more thoroughly
+                scrapingbee = ScrapingBeeScraper()
+                resolved_url, main_page_content = await scrapingbee.scrape_main_page(domain)
+                
+                # Try extraction again with ScrapingBee content
+                scrapingbee_scraped_content = {resolved_url: main_page_content}
+                scrapingbee_extract_response = await ai_client.extract_answer(
+                    scrapingbee_scraped_content, 
+                    request.prompt_extract
+                )
+                
+                # Update with ScrapingBee results
+                scraped_content = scrapingbee_scraped_content
+                filtered_urls = [resolved_url]
+                extracted_answer = scrapingbee_extract_response.content
+                extract_input_tokens += scrapingbee_extract_response.input_tokens
+                extract_output_tokens += scrapingbee_extract_response.output_tokens
+                
+                logger.info(f"[{domain}] ScrapingBee fallback successful")
+                
+            except Exception as fallback_error:
+                logger.error(f"[{domain}] ScrapingBee fallback failed: {str(fallback_error)}")
+                # Keep original NOTFOUND response if fallback fails
+        
         # Calculate total tokens
         total_tokens = (
-            filter_response.input_tokens + filter_response.output_tokens +
-            extract_response.input_tokens + extract_response.output_tokens
+            filter_input_tokens + filter_output_tokens +
+            extract_input_tokens + extract_output_tokens
         )
         
         return DirectScrapeResponse(
@@ -551,11 +588,11 @@ async def scrape_direct_url(request: DirectScrapeRequest):
             all_urls=all_urls,
             filtered_urls=filtered_urls,
             scraped_content=scraped_content,
-            extracted_answer=extract_response.content,
-            filter_input_tokens=filter_response.input_tokens,
-            filter_output_tokens=filter_response.output_tokens,
-            extract_input_tokens=extract_response.input_tokens,
-            extract_output_tokens=extract_response.output_tokens,
+            extracted_answer=extracted_answer,
+            filter_input_tokens=filter_input_tokens,
+            filter_output_tokens=filter_output_tokens,
+            extract_input_tokens=extract_input_tokens,
+            extract_output_tokens=extract_output_tokens,
             total_tokens=total_tokens,
         )
     

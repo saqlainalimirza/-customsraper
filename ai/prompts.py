@@ -19,7 +19,7 @@ EXTRACT_ANSWER_SYSTEM_PROMPT = """You are a data extraction assistant. Your task
 Rules:
 1. Only use information found in the provided content
 2. Be precise and factual
-3. If the information is not found in the content, clearly state that
+3. If the information is not found in the content, output ONLY the word "NOTFOUND" (nothing else)
 4. Structure your answer clearly
 5. Include relevant details but avoid unnecessary information"""
 
@@ -33,4 +33,4 @@ EXTRACT_ANSWER_USER_PROMPT = """Based on the following scraped content from mult
 
 --- END OF CONTENT ---
 
-Provide a comprehensive answer based solely on the information found in the scraped content above."""
+IMPORTANT: If the requested information is NOT found in the scraped content above, respond with ONLY the word "NOTFOUND" (no explanation, no other text). Otherwise, provide a comprehensive answer based solely on the information found."""
