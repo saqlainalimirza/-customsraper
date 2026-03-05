@@ -2,7 +2,8 @@ import asyncio
 import random
 from typing import Dict
 
-from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig
+import httpx
+from bs4 import BeautifulSoup
 
 from config import get_settings
 from utils.logging import setup_logger, log_request
@@ -22,32 +23,14 @@ class ContentScraper:
     def __init__(self):
         self.settings = get_settings()
 
-    def _get_browser_config(self) -> BrowserConfig:
-        """Create browser config with anti-blocking settings."""
-        return BrowserConfig(
-            headless=True,
-            user_agent=random.choice(USER_AGENTS),
-            headers={
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-                "Accept-Language": "en-US,en;q=0.9",
-                "Accept-Encoding": "gzip, deflate, br",
-                "Connection": "keep-alive",
-                "Upgrade-Insecure-Requests": "1",
-                "Sec-Fetch-Dest": "document",
-                "Sec-Fetch-Mode": "navigate",
-                "Sec-Fetch-Site": "none",
-                "Sec-Fetch-User": "?1",
-                "Cache-Control": "max-age=0",
-            },
-        )
-
-    def _get_run_config(self) -> CrawlerRunConfig:
-        return CrawlerRunConfig(
-            wait_until="domcontentloaded",
-            delay_before_return_html=0.3,
-            remove_overlay_elements=False,
-            page_timeout=15000,
-        )
+    def _get_headers(self) -> dict:
+        """Get HTTP headers with random user agent."""
+        return {
+            "User-Agent": random.choice(USER_AGENTS),
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Accept-Encoding": "gzip, deflate, br",
+        }
 
     async def _random_delay(self) -> None:
         """Add random delay between requests."""
@@ -80,7 +63,7 @@ class ContentScraper:
 
     async def scrape_urls(self, urls: list[str]) -> Dict[str, str]:
         """
-        Scrape content from a list of URLs.
+        Scrape content from a list of URLs using simple HTTP.
         
         Args:
             urls: List of URLs to scrape
@@ -88,45 +71,39 @@ class ContentScraper:
         Returns:
             Dict mapping URL to extracted text content
         """
-        logger.info(f"Starting to scrape {len(urls)} URLs")
+        logger.info(f"Starting to scrape {len(urls)} URLs with simple HTTP")
         
         results: Dict[str, str] = {}
         
-        async with AsyncWebCrawler(config=self._get_browser_config()) as crawler:
+        async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
             for i, url in enumerate(urls):
                 try:
                     log_request(logger, "GET", url)
-                    result = await crawler.arun(url, config=self._get_run_config())
+                    response = await client.get(url, headers=self._get_headers())
+                    response.raise_for_status()
                     
-                    if result.success:
-                        text = result.markdown or result.cleaned_html or ""
-                        
-                        if not text and result.html:
-                            import re
-                            html = result.html
-                            html = re.sub(r'<script[^>]*>.*?</script>', '', html, flags=re.DOTALL)
-                            html = re.sub(r'<style[^>]*>.*?</style>', '', html, flags=re.DOTALL)
-                            html = re.sub(r'<[^>]+>', ' ', html)
-                            html = re.sub(r'\s+', ' ', html)
-                            text = html.strip()
-                        
-                        cleaned_text = self._clean_text(text)
-                        
-                        if cleaned_text and len(cleaned_text) > 100:
-                            results[url] = cleaned_text[:30000]
-                            logger.info(
-                                f"[{i+1}/{len(urls)}] Scraped {url} | "
-                                f"Content length: {len(cleaned_text)} chars"
-                            )
-                        else:
-                            logger.warning(f"[{i+1}/{len(urls)}] No useful content from {url} (got {len(cleaned_text) if cleaned_text else 0} chars)")
-                    else:
-                        logger.warning(
-                            f"[{i+1}/{len(urls)}] Failed to scrape {url}: {result.error_message}"
+                    soup = BeautifulSoup(response.text, 'html.parser')
+                    
+                    # Remove script, style, nav, footer, header elements
+                    for element in soup(['script', 'style', 'nav', 'footer', 'header']):
+                        element.decompose()
+                    
+                    # Get text from main content areas
+                    text = soup.get_text()
+                    cleaned_text = self._clean_text(text)
+                    
+                    if cleaned_text and len(cleaned_text) > 100:
+                        # Limit to 20k chars to avoid token limits
+                        results[url] = cleaned_text[:20000]
+                        logger.info(
+                            f"[{i+1}/{len(urls)}] ✓ Scraped {url} | "
+                            f"Content: {len(cleaned_text)} chars"
                         )
+                    else:
+                        logger.warning(f"[{i+1}/{len(urls)}] ✗ No useful content from {url} (got {len(cleaned_text) if cleaned_text else 0} chars)")
                         
                 except Exception as e:
-                    logger.error(f"[{i+1}/{len(urls)}] Error scraping {url}: {e}")
+                    logger.warning(f"[{i+1}/{len(urls)}] ✗ Error scraping {url}: {e}")
                     continue
         
         logger.info(f"Scraping complete. Successfully scraped {len(results)}/{len(urls)} URLs")

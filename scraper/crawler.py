@@ -2,7 +2,8 @@ import random
 from urllib.parse import urlparse, urljoin
 from typing import Set
 
-from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig
+import httpx
+from bs4 import BeautifulSoup
 
 from config import get_settings
 from utils.logging import setup_logger, log_request
@@ -24,26 +25,14 @@ class DomainCrawler:
         self.settings = get_settings()
         self.discovered_urls: Set[str] = set()
 
-    def _get_browser_config(self) -> BrowserConfig:
-        """Create browser config with anti-blocking settings."""
-        return BrowserConfig(
-            headless=True,
-            user_agent=random.choice(USER_AGENTS),
-            headers={
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-                "Accept-Language": "en-US,en;q=0.9",
-                "Accept-Encoding": "gzip, deflate, br",
-            },
-        )
-
-    def _get_run_config(self) -> CrawlerRunConfig:
-        """Create crawler run config - fast settings."""
-        return CrawlerRunConfig(
-            wait_until="domcontentloaded",
-            delay_before_return_html=0.3,
-            remove_overlay_elements=False,
-            page_timeout=15000,
-        )
+    def _get_headers(self) -> dict:
+        """Get HTTP headers with random user agent."""
+        return {
+            "User-Agent": random.choice(USER_AGENTS),
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Accept-Encoding": "gzip, deflate, br",
+        }
 
     def _normalize_url(self, url: str, base_url: str) -> str | None:
         """Normalize and validate a URL."""
@@ -74,7 +63,7 @@ class DomainCrawler:
 
     async def get_homepage_links(self, domain: str) -> list[str]:
         """
-        Just get links from homepage - fast, single page crawl.
+        Get links from homepage using simple HTTP requests.
         Returns up to MAX_URLS_TO_COLLECT unique internal links.
         """
         start_url = f"https://{domain}"
@@ -83,32 +72,50 @@ class DomainCrawler:
         
         logger.info(f"Getting links from homepage: {start_url}")
         
-        async with AsyncWebCrawler(config=self._get_browser_config()) as crawler:
+        async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
             try:
                 log_request(logger, "GET", start_url)
-                result = await crawler.arun(start_url, config=self._get_run_config())
+                response = await client.get(start_url, headers=self._get_headers())
+                response.raise_for_status()
                 
-                if not result.success:
-                    logger.warning(f"Failed to crawl {start_url}, trying www version")
-                    start_url = f"https://www.{domain}"
-                    result = await crawler.arun(start_url, config=self._get_run_config())
+                soup = BeautifulSoup(response.text, 'html.parser')
                 
-                if result.success:
-                    internal_links = result.links.get("internal", [])
+                # Extract all links
+                for link in soup.find_all('a', href=True):
+                    if len(self.discovered_urls) >= MAX_URLS_TO_COLLECT:
+                        break
+                    href = link.get('href', '')
+                    normalized = self._normalize_url(href, start_url)
+                    if normalized and self._is_same_domain(normalized, domain):
+                        self.discovered_urls.add(normalized)
+                
+                logger.info(f"Found {len(self.discovered_urls)} links from homepage")
+                
+            except httpx.HTTPStatusError:
+                # Try www version
+                logger.warning(f"Failed to fetch {start_url}, trying www version")
+                start_url = f"https://www.{domain}"
+                try:
+                    response = await client.get(start_url, headers=self._get_headers())
+                    response.raise_for_status()
                     
-                    for link in internal_links:
+                    soup = BeautifulSoup(response.text, 'html.parser')
+                    self.discovered_urls.add(start_url)
+                    
+                    for link in soup.find_all('a', href=True):
                         if len(self.discovered_urls) >= MAX_URLS_TO_COLLECT:
                             break
-                        href = link.get("href", "")
+                        href = link.get('href', '')
                         normalized = self._normalize_url(href, start_url)
                         if normalized and self._is_same_domain(normalized, domain):
                             self.discovered_urls.add(normalized)
                     
                     logger.info(f"Found {len(self.discovered_urls)} links from homepage")
-                else:
-                    logger.error(f"Failed to crawl homepage: {result.error_message}")
+                    
+                except Exception as e:
+                    logger.error(f"Failed to fetch www version: {e}")
                     
             except Exception as e:
-                logger.error(f"Error crawling homepage {start_url}: {e}")
+                logger.error(f"Error fetching homepage {start_url}: {e}")
         
         return list(self.discovered_urls)[:MAX_URLS_TO_COLLECT]

@@ -18,11 +18,9 @@ from utils.logging import setup_logger, log_pipeline_step, log_summary
 
 logger = setup_logger(__name__)
 
-PARALLEL_WORKERS = 30  # Reduced from 50 to prevent overwhelming the system
-# Limit concurrent browsers to prevent resource exhaustion
-# Railway containers have strict process limits - keep browsers minimal
-BROWSER_SEMAPHORE = asyncio.Semaphore(2)
-FALLBACK_WORKERS = 10  # Reduced from 20 to avoid ScrapingBee rate limits
+PARALLEL_WORKERS = 30
+# No browser semaphore needed - using simple HTTP now!
+FALLBACK_WORKERS = 10
 ROW_TIMEOUT = 180
 BATCH_DELAY = 2.0  # Delay between batches to prevent rate limits
 
@@ -143,12 +141,11 @@ async def process_single_row(
 
 
 async def _do_process_row(row_id, domain, prompt_filter, prompt_extract, ai_client, db, result):
-    """Core processing logic - browser access is semaphore-gated."""
+    """Core processing logic - using simple HTTP (no browser needed!)."""
     
-    # STEP 1: Crawl homepage (browser-gated)
-    async with BROWSER_SEMAPHORE:
-        crawler = DomainCrawler()
-        all_urls = await crawler.get_homepage_links(domain)
+    # STEP 1: Crawl homepage with simple HTTP
+    crawler = DomainCrawler()
+    all_urls = await crawler.get_homepage_links(domain)
     
     result["all_urls"] = all_urls
     if not all_urls:
@@ -156,7 +153,7 @@ async def _do_process_row(row_id, domain, prompt_filter, prompt_extract, ai_clie
     
     logger.info(f"[{domain}] Found {len(all_urls)} links")
     
-    # STEP 2: AI filter URLs (no browser needed - fast)
+    # STEP 2: AI filter URLs
     filter_response = await ai_client.filter_urls(all_urls, prompt_filter, domain)
     result["filter_input_tokens"] = filter_response.input_tokens
     result["filter_output_tokens"] = filter_response.output_tokens
@@ -175,10 +172,9 @@ async def _do_process_row(row_id, domain, prompt_filter, prompt_extract, ai_clie
     
     logger.info(f"[{domain}] AI picked {len(filtered_urls)} URLs")
     
-    # STEP 3: Scrape filtered URLs (browser-gated)
-    async with BROWSER_SEMAPHORE:
-        content_scraper = ContentScraper()
-        scraped_content = await content_scraper.scrape_urls(filtered_urls)
+    # STEP 3: Scrape filtered URLs with simple HTTP
+    content_scraper = ContentScraper()
+    scraped_content = await content_scraper.scrape_urls(filtered_urls)
     
     result["scraped_content"] = scraped_content
     if not scraped_content:
@@ -186,7 +182,7 @@ async def _do_process_row(row_id, domain, prompt_filter, prompt_extract, ai_clie
     
     logger.info(f"[{domain}] Scraped {len(scraped_content)} pages")
     
-    # STEP 4: AI extract answer (no browser needed - fast)
+    # STEP 4: AI extract answer
     extract_response = await ai_client.extract_answer(scraped_content, prompt_extract)
     result["extracted_answer"] = extract_response.content
     result["extract_input_tokens"] = extract_response.input_tokens
