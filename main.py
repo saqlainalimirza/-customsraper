@@ -50,6 +50,15 @@ class ScrapeRequest(BaseModel):
     fallback_limit: int | None = None
 
 
+class ScrapeResult(BaseModel):
+    domain: str
+    extracted_answer: str
+    all_urls: list[str]
+    filtered_urls: list[str]
+    scraped_content: dict[str, str]
+    total_tokens: int
+
+
 class ScrapeResponse(BaseModel):
     processed: int
     successful: int
@@ -58,6 +67,7 @@ class ScrapeResponse(BaseModel):
     fallback_processed: int = 0
     fallback_successful: int = 0
     fallback_failed: int = 0
+    results: list[ScrapeResult] = []
 
 
 class FallbackScrapeRequest(BaseModel):
@@ -110,8 +120,10 @@ async def process_single_row(
     """Process a single scrape job row with timeout and browser limiting."""
     row_id = row["id"]
     domain = extract_domain(row["domain"])
+    original_domain = row["domain"]
     
     result = {
+        "domain": original_domain,
         "all_urls": [],
         "filtered_urls": [],
         "scraped_content": {},
@@ -221,6 +233,7 @@ async def process_fallback_row(
     """
     row_id = row["id"]
     domain = extract_domain(row["domain"])
+    original_domain = row["domain"]
 
     try:
         await db.update_status(row_id, "fallback_scraping")
@@ -244,6 +257,11 @@ async def process_fallback_row(
         )
 
         return {
+            "domain": original_domain,
+            "all_urls": [resolved_url],
+            "filtered_urls": [resolved_url],
+            "scraped_content": scraped_content,
+            "extracted_answer": extract_response.content,
             "extract_input_tokens": extract_response.input_tokens,
             "extract_output_tokens": extract_response.output_tokens,
         }
@@ -260,16 +278,17 @@ async def run_fallback_pipeline(
     dataset_id: str,
     prompt_extract: str,
     limit: int,
-) -> tuple[int, int, int, int]:
+) -> tuple[int, int, int, int, list[ScrapeResult]]:
     """Run fallback pipeline for failed rows in a dataset."""
     failed_rows = await db.get_failed(dataset_id, limit)
     if not failed_rows:
         logger.info(f"No failed rows found for fallback in dataset_id={dataset_id}")
-        return 0, 0, 0, 0
+        return 0, 0, 0, 0, []
 
     fallback_successful = 0
     fallback_failed = 0
     fallback_tokens = 0
+    fallback_results = []
 
     for i in range(0, len(failed_rows), FALLBACK_WORKERS):
         batch = failed_rows[i:i + FALLBACK_WORKERS]
@@ -284,13 +303,22 @@ async def run_fallback_pipeline(
                 fallback_failed += 1
             else:
                 fallback_successful += 1
-                fallback_tokens += result["extract_input_tokens"] + result["extract_output_tokens"]
+                row_tokens = result["extract_input_tokens"] + result["extract_output_tokens"]
+                fallback_tokens += row_tokens
+                fallback_results.append(ScrapeResult(
+                    domain=result["domain"],
+                    extracted_answer=result["extracted_answer"],
+                    all_urls=result["all_urls"],
+                    filtered_urls=result["filtered_urls"],
+                    scraped_content=result["scraped_content"],
+                    total_tokens=row_tokens,
+                ))
         
         # Add delay between fallback batches to avoid ScrapingBee rate limits
         if i + FALLBACK_WORKERS < len(failed_rows):
             await asyncio.sleep(BATCH_DELAY)
 
-    return len(failed_rows), fallback_successful, fallback_failed, fallback_tokens
+    return len(failed_rows), fallback_successful, fallback_failed, fallback_tokens, fallback_results
 
 
 @app.post("/scrape", response_model=ScrapeResponse)
@@ -321,6 +349,7 @@ async def scrape_batch(request: ScrapeRequest):
     successful = 0
     failed = 0
     total_tokens = 0
+    extracted_results = []
     
     for i in range(0, len(rows), PARALLEL_WORKERS):
         batch = rows[i:i + PARALLEL_WORKERS]
@@ -339,10 +368,19 @@ async def scrape_batch(request: ScrapeRequest):
                 failed += 1
             else:
                 successful += 1
-                total_tokens += (
+                row_tokens = (
                     result["filter_input_tokens"] + result["filter_output_tokens"] +
                     result["extract_input_tokens"] + result["extract_output_tokens"]
                 )
+                total_tokens += row_tokens
+                extracted_results.append(ScrapeResult(
+                    domain=result["domain"],
+                    extracted_answer=result["extracted_answer"],
+                    all_urls=result["all_urls"],
+                    filtered_urls=result["filtered_urls"],
+                    scraped_content=result["scraped_content"],
+                    total_tokens=row_tokens,
+                ))
         
         # Add delay between batches to prevent overwhelming resources
         if i + PARALLEL_WORKERS < len(rows):
@@ -359,6 +397,7 @@ async def scrape_batch(request: ScrapeRequest):
             fallback_successful,
             fallback_failed,
             fallback_tokens,
+            fallback_results,
         ) = await run_fallback_pipeline(
             db=db,
             ai_client=ai_client,
@@ -367,6 +406,7 @@ async def scrape_batch(request: ScrapeRequest):
             limit=fallback_limit,
         )
         total_tokens += fallback_tokens
+        extracted_results.extend(fallback_results)
     
     log_summary(logger, request.dataset_id, len(rows), successful, failed, total_tokens)
     
@@ -378,6 +418,7 @@ async def scrape_batch(request: ScrapeRequest):
         fallback_processed=fallback_processed,
         fallback_successful=fallback_successful,
         fallback_failed=fallback_failed,
+        results=extracted_results,
     )
 
 
@@ -397,6 +438,7 @@ async def scrape_failed_rows_with_fallback(request: FallbackScrapeRequest):
         fallback_successful,
         fallback_failed,
         fallback_tokens,
+        fallback_results,
     ) = await run_fallback_pipeline(
         db=db,
         ai_client=ai_client,
@@ -413,6 +455,7 @@ async def scrape_failed_rows_with_fallback(request: FallbackScrapeRequest):
         fallback_processed=fallback_processed,
         fallback_successful=fallback_successful,
         fallback_failed=fallback_failed,
+        results=fallback_results,
     )
 
 
@@ -503,6 +546,7 @@ async def scrape_with_scrapingbee_only(request: FallbackScrapeRequest):
     successful = 0
     failed = 0
     total_tokens = 0
+    extracted_results = []
     
     for i in range(0, len(rows), FALLBACK_WORKERS):
         batch = rows[i:i + FALLBACK_WORKERS]
@@ -517,7 +561,16 @@ async def scrape_with_scrapingbee_only(request: FallbackScrapeRequest):
                 failed += 1
             else:
                 successful += 1
-                total_tokens += result["extract_input_tokens"] + result["extract_output_tokens"]
+                row_tokens = result["extract_input_tokens"] + result["extract_output_tokens"]
+                total_tokens += row_tokens
+                extracted_results.append(ScrapeResult(
+                    domain=result["domain"],
+                    extracted_answer=result["extracted_answer"],
+                    all_urls=result["all_urls"],
+                    filtered_urls=result["filtered_urls"],
+                    scraped_content=result["scraped_content"],
+                    total_tokens=row_tokens,
+                ))
         
         # Add delay between batches to avoid ScrapingBee rate limits
         if i + FALLBACK_WORKERS < len(rows):
@@ -533,6 +586,7 @@ async def scrape_with_scrapingbee_only(request: FallbackScrapeRequest):
         fallback_processed=0,
         fallback_successful=0,
         fallback_failed=0,
+        results=extracted_results,
     )
 
 
