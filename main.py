@@ -18,12 +18,13 @@ from utils.logging import setup_logger, log_pipeline_step, log_summary
 
 logger = setup_logger(__name__)
 
-PARALLEL_WORKERS = 50
+PARALLEL_WORKERS = 30  # Reduced from 50 to prevent overwhelming the system
 # Limit concurrent browsers to prevent resource exhaustion
 # Railway containers have strict process limits - keep browsers minimal
 BROWSER_SEMAPHORE = asyncio.Semaphore(2)
-FALLBACK_WORKERS = 20
+FALLBACK_WORKERS = 10  # Reduced from 20 to avoid ScrapingBee rate limits
 ROW_TIMEOUT = 180
+BATCH_DELAY = 2.0  # Delay between batches to prevent rate limits
 
 
 @asynccontextmanager
@@ -288,6 +289,10 @@ async def run_fallback_pipeline(
             else:
                 fallback_successful += 1
                 fallback_tokens += result["extract_input_tokens"] + result["extract_output_tokens"]
+        
+        # Add delay between fallback batches to avoid ScrapingBee rate limits
+        if i + FALLBACK_WORKERS < len(failed_rows):
+            await asyncio.sleep(BATCH_DELAY)
 
     return len(failed_rows), fallback_successful, fallback_failed, fallback_tokens
 
@@ -342,6 +347,10 @@ async def scrape_batch(request: ScrapeRequest):
                     result["filter_input_tokens"] + result["filter_output_tokens"] +
                     result["extract_input_tokens"] + result["extract_output_tokens"]
                 )
+        
+        # Add delay between batches to prevent overwhelming resources
+        if i + PARALLEL_WORKERS < len(rows):
+            await asyncio.sleep(BATCH_DELAY)
 
     fallback_processed = 0
     fallback_successful = 0
@@ -463,6 +472,74 @@ async def scrape_single(request: SingleScrapeRequest):
     )
 
 
+@app.post("/scrape/scrapingbee-only", response_model=ScrapeResponse)
+async def scrape_with_scrapingbee_only(request: FallbackScrapeRequest):
+    """
+    Process UNPROCESSED rows using ONLY ScrapingBee (no Playwright, no URL filtering).
+    - Fetch unprocessed rows
+    - Scrape main page with ScrapingBee
+    - Extract with AI
+    - Fast and stable, bypasses all browser issues
+    """
+    logger.info(
+        f"Starting ScrapingBee-only scrape for dataset_id={request.dataset_id}, limit={request.limit} | "
+        f"prompt_extract: {request.prompt_extract[:50]}..."
+    )
+    
+    db = SupabaseClient()
+    ai_client = get_ai_client(request.ai_provider)
+    
+    # Get UNPROCESSED rows (not failed ones)
+    rows = await db.get_unprocessed(request.dataset_id, request.limit)
+    
+    if not rows:
+        logger.info(f"No unprocessed rows found for dataset_id={request.dataset_id}")
+        return ScrapeResponse(
+            processed=0,
+            successful=0,
+            failed=0,
+            total_tokens=0,
+            fallback_processed=0,
+            fallback_successful=0,
+            fallback_failed=0,
+        )
+    
+    successful = 0
+    failed = 0
+    total_tokens = 0
+    
+    for i in range(0, len(rows), FALLBACK_WORKERS):
+        batch = rows[i:i + FALLBACK_WORKERS]
+        logger.info(f"=== ScrapingBee Batch {i//FALLBACK_WORKERS + 1}: {len(batch)} rows ===")
+        
+        tasks = [process_fallback_row(row, request.prompt_extract, ai_client, db) for row in batch]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        for idx, result in enumerate(results):
+            if isinstance(result, Exception):
+                logger.error(f"ScrapingBee failed row {batch[idx]['id']}: {result}")
+                failed += 1
+            else:
+                successful += 1
+                total_tokens += result["extract_input_tokens"] + result["extract_output_tokens"]
+        
+        # Add delay between batches to avoid ScrapingBee rate limits
+        if i + FALLBACK_WORKERS < len(rows):
+            await asyncio.sleep(BATCH_DELAY)
+    
+    log_summary(logger, request.dataset_id, len(rows), successful, failed, total_tokens)
+    
+    return ScrapeResponse(
+        processed=len(rows),
+        successful=successful,
+        failed=failed,
+        total_tokens=total_tokens,
+        fallback_processed=0,
+        fallback_successful=0,
+        fallback_failed=0,
+    )
+
+
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
@@ -474,8 +551,9 @@ async def root():
         "name": "AI Web Scraper API",
         "version": "1.0.0",
         "endpoints": {
-            "/scrape": "POST - Process batch of scrape jobs from Supabase",
-            "/scrape/fallback": "POST - Re-run failed rows with ScrapingBee main-page mode",
+            "/scrape": "POST - Process batch of scrape jobs from Supabase (uses Playwright + AI filtering)",
+            "/scrape/scrapingbee-only": "POST - Process UNPROCESSED rows with ScrapingBee only (no Playwright, fast)",
+            "/scrape/fallback": "POST - Re-run FAILED rows with ScrapingBee main-page mode",
             "/scrape/single": "POST - Process single scrape request",
             "/health": "GET - Health check",
         }
