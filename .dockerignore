@@ -1,0 +1,13 @@
+.env
+.env.*
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.pytest_cache/
+.mypy_cache/
+cleaned_data.csv
+sampledata.txt
+*.log

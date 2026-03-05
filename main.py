@@ -1,0 +1,486 @@
+import json
+import asyncio
+from contextlib import asynccontextmanager
+from typing import Literal
+from urllib.parse import urlparse
+
+from fastapi import FastAPI, HTTPException, Query
+from pydantic import BaseModel
+
+from config import get_settings
+from db.supabase_client import SupabaseClient
+from scraper.crawler import DomainCrawler
+from scraper.content import ContentScraper
+from scraper.scrapingbee import ScrapingBeeScraper
+from ai.openrouter_client import OpenRouterClient
+from ai.base import AIClient
+from utils.logging import setup_logger, log_pipeline_step, log_summary
+
+logger = setup_logger(__name__)
+
+PARALLEL_WORKERS = 50
+# Limit concurrent browsers to prevent resource exhaustion
+BROWSER_SEMAPHORE = asyncio.Semaphore(10)
+FALLBACK_WORKERS = 20
+ROW_TIMEOUT = 180
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("Starting AI Web Scraper API")
+    yield
+    logger.info("Shutting down AI Web Scraper API")
+
+
+app = FastAPI(
+    title="AI Web Scraper API",
+    description="Scrape websites with AI-powered URL filtering and content extraction",
+    version="1.0.0",
+    lifespan=lifespan,
+)
+
+
+class ScrapeRequest(BaseModel):
+    dataset_id: str
+    prompt_filter: str
+    prompt_extract: str
+    limit: int = 100
+    ai_provider: Literal["gpt", "claude"] = "gpt"
+    run_fallback: bool = True
+    fallback_limit: int | None = None
+
+
+class ScrapeResponse(BaseModel):
+    processed: int
+    successful: int
+    failed: int
+    total_tokens: int
+    fallback_processed: int = 0
+    fallback_successful: int = 0
+    fallback_failed: int = 0
+
+
+class FallbackScrapeRequest(BaseModel):
+    dataset_id: str
+    prompt_extract: str
+    limit: int = 100
+    ai_provider: Literal["gpt", "claude"] = "gpt"
+
+
+class SingleScrapeRequest(BaseModel):
+    domain: str
+    prompt_filter: str
+    prompt_extract: str
+    ai_provider: Literal["gpt", "claude"] = "gpt"
+
+
+class SingleScrapeResponse(BaseModel):
+    all_urls: list[str]
+    filtered_urls: list[str]
+    scraped_content: dict[str, str]
+    extracted_answer: str
+    filter_input_tokens: int
+    filter_output_tokens: int
+    extract_input_tokens: int
+    extract_output_tokens: int
+    total_tokens: int
+
+
+def get_ai_client(provider: str) -> AIClient:
+    if provider in ("gpt", "claude"):
+        return OpenRouterClient(model_type=provider)
+    else:
+        raise ValueError(f"Unknown AI provider: {provider}. Use 'gpt' or 'claude'")
+
+
+def extract_domain(domain_or_url: str) -> str:
+    if domain_or_url.startswith(("http://", "https://")):
+        parsed = urlparse(domain_or_url)
+        return parsed.netloc
+    return domain_or_url.replace("www.", "")
+
+
+async def process_single_row(
+    row: dict,
+    prompt_filter: str,
+    prompt_extract: str,
+    ai_client: AIClient,
+    db: SupabaseClient,
+) -> dict:
+    """Process a single scrape job row with timeout and browser limiting."""
+    row_id = row["id"]
+    domain = extract_domain(row["domain"])
+    
+    result = {
+        "all_urls": [],
+        "filtered_urls": [],
+        "scraped_content": {},
+        "extracted_answer": "",
+        "filter_input_tokens": 0,
+        "filter_output_tokens": 0,
+        "extract_input_tokens": 0,
+        "extract_output_tokens": 0,
+    }
+    
+    try:
+        # Wrap entire row in a timeout
+        return await asyncio.wait_for(
+            _do_process_row(row_id, domain, prompt_filter, prompt_extract, ai_client, db, result),
+            timeout=ROW_TIMEOUT,
+        )
+    except asyncio.TimeoutError:
+        error_msg = f"Timed out after {ROW_TIMEOUT}s"
+        logger.error(f"Row {row_id} ({domain}): {error_msg}")
+        await db.mark_failed(row_id, error_msg)
+        raise
+    except Exception as e:
+        error_msg = str(e)
+        log_pipeline_step(logger, "process", row_id, "failed", {"error": error_msg})
+        await db.mark_failed(row_id, error_msg)
+        raise
+
+
+async def _do_process_row(row_id, domain, prompt_filter, prompt_extract, ai_client, db, result):
+    """Core processing logic - browser access is semaphore-gated."""
+    
+    # STEP 1: Crawl homepage (browser-gated)
+    async with BROWSER_SEMAPHORE:
+        crawler = DomainCrawler()
+        all_urls = await crawler.get_homepage_links(domain)
+    
+    result["all_urls"] = all_urls
+    if not all_urls:
+        raise ValueError(f"No URLs found for domain {domain}")
+    
+    logger.info(f"[{domain}] Found {len(all_urls)} links")
+    
+    # STEP 2: AI filter URLs (no browser needed - fast)
+    filter_response = await ai_client.filter_urls(all_urls, prompt_filter, domain)
+    result["filter_input_tokens"] = filter_response.input_tokens
+    result["filter_output_tokens"] = filter_response.output_tokens
+    
+    try:
+        filtered_urls = json.loads(filter_response.content)
+        if not isinstance(filtered_urls, list):
+            filtered_urls = []
+        filtered_urls = filtered_urls[:5]
+    except json.JSONDecodeError:
+        filtered_urls = all_urls[:5]
+    
+    result["filtered_urls"] = filtered_urls
+    if not filtered_urls:
+        raise ValueError("AI filtered out all URLs")
+    
+    logger.info(f"[{domain}] AI picked {len(filtered_urls)} URLs")
+    
+    # STEP 3: Scrape filtered URLs (browser-gated)
+    async with BROWSER_SEMAPHORE:
+        content_scraper = ContentScraper()
+        scraped_content = await content_scraper.scrape_urls(filtered_urls)
+    
+    result["scraped_content"] = scraped_content
+    if not scraped_content:
+        raise ValueError("Failed to scrape any content")
+    
+    logger.info(f"[{domain}] Scraped {len(scraped_content)} pages")
+    
+    # STEP 4: AI extract answer (no browser needed - fast)
+    extract_response = await ai_client.extract_answer(scraped_content, prompt_extract)
+    result["extracted_answer"] = extract_response.content
+    result["extract_input_tokens"] = extract_response.input_tokens
+    result["extract_output_tokens"] = extract_response.output_tokens
+    
+    logger.info(f"[{domain}] Done! Answer: {len(extract_response.content)} chars")
+    
+    # STEP 5: Save to DB
+    await db.mark_completed(
+        row_id=row_id,
+        all_urls=result["all_urls"],
+        filtered_urls=result["filtered_urls"],
+        scraped_content=result["scraped_content"],
+        extracted_answer=result["extracted_answer"],
+        filter_input_tokens=result["filter_input_tokens"],
+        filter_output_tokens=result["filter_output_tokens"],
+        extract_input_tokens=result["extract_input_tokens"],
+        extract_output_tokens=result["extract_output_tokens"],
+    )
+    
+    return result
+
+
+async def process_fallback_row(
+    row: dict,
+    prompt_extract: str,
+    ai_client: AIClient,
+    db: SupabaseClient,
+) -> dict:
+    """
+    Fallback row processing:
+    - Skip URL discovery
+    - Skip URL filtering prompt
+    - Scrape only main page with ScrapingBee
+    - Run extract prompt directly
+    """
+    row_id = row["id"]
+    domain = extract_domain(row["domain"])
+
+    try:
+        await db.update_status(row_id, "fallback_scraping")
+        scrapingbee = ScrapingBeeScraper()
+        resolved_url, main_page_content = await scrapingbee.scrape_main_page(domain)
+
+        scraped_content = {resolved_url: main_page_content}
+        await db.update_status(row_id, "fallback_extracting")
+        extract_response = await ai_client.extract_answer(scraped_content, prompt_extract)
+
+        await db.mark_completed(
+            row_id=row_id,
+            all_urls=[resolved_url],
+            filtered_urls=[resolved_url],
+            scraped_content=scraped_content,
+            extracted_answer=extract_response.content,
+            filter_input_tokens=0,
+            filter_output_tokens=0,
+            extract_input_tokens=extract_response.input_tokens,
+            extract_output_tokens=extract_response.output_tokens,
+        )
+
+        return {
+            "extract_input_tokens": extract_response.input_tokens,
+            "extract_output_tokens": extract_response.output_tokens,
+        }
+    except Exception as e:
+        error_msg = f"Fallback pipeline failed: {e}"
+        log_pipeline_step(logger, "fallback_process", row_id, "failed", {"error": error_msg})
+        await db.mark_failed(row_id, error_msg)
+        raise
+
+
+async def run_fallback_pipeline(
+    db: SupabaseClient,
+    ai_client: AIClient,
+    dataset_id: str,
+    prompt_extract: str,
+    limit: int,
+) -> tuple[int, int, int, int]:
+    """Run fallback pipeline for failed rows in a dataset."""
+    failed_rows = await db.get_failed(dataset_id, limit)
+    if not failed_rows:
+        logger.info(f"No failed rows found for fallback in dataset_id={dataset_id}")
+        return 0, 0, 0, 0
+
+    fallback_successful = 0
+    fallback_failed = 0
+    fallback_tokens = 0
+
+    for i in range(0, len(failed_rows), FALLBACK_WORKERS):
+        batch = failed_rows[i:i + FALLBACK_WORKERS]
+        logger.info(f"=== Fallback Batch {i//FALLBACK_WORKERS + 1}: {len(batch)} rows ===")
+
+        tasks = [process_fallback_row(row, prompt_extract, ai_client, db) for row in batch]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        for idx, result in enumerate(results):
+            if isinstance(result, Exception):
+                logger.error(f"Fallback failed row {batch[idx]['id']}: {result}")
+                fallback_failed += 1
+            else:
+                fallback_successful += 1
+                fallback_tokens += result["extract_input_tokens"] + result["extract_output_tokens"]
+
+    return len(failed_rows), fallback_successful, fallback_failed, fallback_tokens
+
+
+@app.post("/scrape", response_model=ScrapeResponse)
+async def scrape_batch(request: ScrapeRequest):
+    """Process a batch of scrape jobs in parallel (50 rows, 15 browsers max)."""
+    logger.info(
+        f"Starting batch scrape for dataset_id={request.dataset_id}, limit={request.limit} | "
+        f"prompt_filter: {request.prompt_filter[:50]}... | prompt_extract: {request.prompt_extract[:50]}..."
+    )
+    
+    db = SupabaseClient()
+    ai_client = get_ai_client(request.ai_provider)
+    
+    rows = await db.get_unprocessed(request.dataset_id, request.limit)
+    
+    if not rows:
+        logger.info(f"No unprocessed rows found for dataset_id={request.dataset_id}")
+        return ScrapeResponse(
+            processed=0,
+            successful=0,
+            failed=0,
+            total_tokens=0,
+            fallback_processed=0,
+            fallback_successful=0,
+            fallback_failed=0,
+        )
+    
+    successful = 0
+    failed = 0
+    total_tokens = 0
+    
+    for i in range(0, len(rows), PARALLEL_WORKERS):
+        batch = rows[i:i + PARALLEL_WORKERS]
+        logger.info(f"=== Batch {i//PARALLEL_WORKERS + 1}: {len(batch)} rows ===")
+        
+        tasks = [
+            process_single_row(row, request.prompt_filter, request.prompt_extract, ai_client, db)
+            for row in batch
+        ]
+        
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        for idx, result in enumerate(results):
+            if isinstance(result, Exception):
+                logger.error(f"Failed row {batch[idx]['id']}: {result}")
+                failed += 1
+            else:
+                successful += 1
+                total_tokens += (
+                    result["filter_input_tokens"] + result["filter_output_tokens"] +
+                    result["extract_input_tokens"] + result["extract_output_tokens"]
+                )
+
+    fallback_processed = 0
+    fallback_successful = 0
+    fallback_failed = 0
+
+    if request.run_fallback:
+        fallback_limit = request.fallback_limit or request.limit
+        (
+            fallback_processed,
+            fallback_successful,
+            fallback_failed,
+            fallback_tokens,
+        ) = await run_fallback_pipeline(
+            db=db,
+            ai_client=ai_client,
+            dataset_id=request.dataset_id,
+            prompt_extract=request.prompt_extract,
+            limit=fallback_limit,
+        )
+        total_tokens += fallback_tokens
+    
+    log_summary(logger, request.dataset_id, len(rows), successful, failed, total_tokens)
+    
+    return ScrapeResponse(
+        processed=len(rows),
+        successful=successful,
+        failed=failed,
+        total_tokens=total_tokens,
+        fallback_processed=fallback_processed,
+        fallback_successful=fallback_successful,
+        fallback_failed=fallback_failed,
+    )
+
+
+@app.post("/scrape/fallback", response_model=ScrapeResponse)
+async def scrape_failed_rows_with_fallback(request: FallbackScrapeRequest):
+    """Re-process failed rows using ScrapingBee main-page scraping + extract prompt only."""
+    logger.info(
+        f"Starting fallback-only scrape for dataset_id={request.dataset_id}, limit={request.limit} | "
+        f"prompt_extract: {request.prompt_extract[:50]}..."
+    )
+
+    db = SupabaseClient()
+    ai_client = get_ai_client(request.ai_provider)
+
+    (
+        fallback_processed,
+        fallback_successful,
+        fallback_failed,
+        fallback_tokens,
+    ) = await run_fallback_pipeline(
+        db=db,
+        ai_client=ai_client,
+        dataset_id=request.dataset_id,
+        prompt_extract=request.prompt_extract,
+        limit=request.limit,
+    )
+
+    return ScrapeResponse(
+        processed=0,
+        successful=0,
+        failed=0,
+        total_tokens=fallback_tokens,
+        fallback_processed=fallback_processed,
+        fallback_successful=fallback_successful,
+        fallback_failed=fallback_failed,
+    )
+
+
+@app.post("/scrape/single", response_model=SingleScrapeResponse)
+async def scrape_single(request: SingleScrapeRequest):
+    """Process a single scrape request without Supabase."""
+    logger.info(f"Starting single scrape for domain={request.domain}")
+    
+    ai_client = get_ai_client(request.ai_provider)
+    domain = extract_domain(request.domain)
+    
+    crawler = DomainCrawler()
+    all_urls = await crawler.get_homepage_links(domain)
+    
+    if not all_urls:
+        raise HTTPException(status_code=404, detail=f"No URLs found for domain {domain}")
+    
+    filter_response = await ai_client.filter_urls(all_urls, request.prompt_filter, domain)
+    
+    try:
+        filtered_urls = json.loads(filter_response.content)
+        if not isinstance(filtered_urls, list):
+            filtered_urls = []
+    except json.JSONDecodeError:
+        filtered_urls = all_urls[:5]
+    
+    if not filtered_urls:
+        raise HTTPException(status_code=404, detail="No relevant URLs found after filtering")
+    
+    content_scraper = ContentScraper()
+    scraped_content = await content_scraper.scrape_urls(filtered_urls)
+    
+    if not scraped_content:
+        raise HTTPException(status_code=500, detail="Failed to scrape content from URLs")
+    
+    extract_response = await ai_client.extract_answer(scraped_content, request.prompt_extract)
+    
+    total_tokens = (
+        filter_response.input_tokens + filter_response.output_tokens +
+        extract_response.input_tokens + extract_response.output_tokens
+    )
+    
+    return SingleScrapeResponse(
+        all_urls=all_urls,
+        filtered_urls=filtered_urls,
+        scraped_content=scraped_content,
+        extracted_answer=extract_response.content,
+        filter_input_tokens=filter_response.input_tokens,
+        filter_output_tokens=filter_response.output_tokens,
+        extract_input_tokens=extract_response.input_tokens,
+        extract_output_tokens=extract_response.output_tokens,
+        total_tokens=total_tokens,
+    )
+
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
+
+
+@app.get("/")
+async def root():
+    return {
+        "name": "AI Web Scraper API",
+        "version": "1.0.0",
+        "endpoints": {
+            "/scrape": "POST - Process batch of scrape jobs from Supabase",
+            "/scrape/fallback": "POST - Re-run failed rows with ScrapingBee main-page mode",
+            "/scrape/single": "POST - Process single scrape request",
+            "/health": "GET - Health check",
+        }
+    }
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+crawl4ai
+openai
+supabase
+python-dotenv
+pydantic
+pydantic-settings
+httpx
