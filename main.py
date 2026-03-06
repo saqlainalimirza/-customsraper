@@ -693,6 +693,43 @@ async def scrape_with_scrapingbee_only(request: FallbackScrapeRequest):
     )
 
 
+@app.post("/scrape/jina-test")
+async def scrape_jina_test(request: DirectScrapeRequest):
+    """
+    Dev/test endpoint: scrape a URL directly with Jina Reader only,
+    skip all other steps, then run the extract prompt and return parsed JSON.
+    """
+    logger.info(f"[Jina test] Scraping {request.url}")
+    try:
+        jina = JinaScraper()
+        jina_url, jina_content = await jina.scrape_main_page(request.url)
+        logger.info(f"[Jina test] Got {len(jina_content)} chars from {jina_url}")
+
+        ai_client = get_ai_client(request.ai_provider)
+        extract_response = await ai_client.extract_answer(
+            {jina_url: jina_content}, request.prompt_extract
+        )
+
+        parsed_answer: Any = extract_response.content
+        if extract_response.content.strip().upper() != "NOTFOUND":
+            try:
+                parsed_answer = json.loads(extract_response.content)
+            except (json.JSONDecodeError, ValueError):
+                pass
+
+        return {
+            "scraper": "jina",
+            "url": jina_url,
+            "content_length": len(jina_content),
+            "extracted_answer": parsed_answer,
+            "input_tokens": extract_response.input_tokens,
+            "output_tokens": extract_response.output_tokens,
+        }
+    except Exception as e:
+        logger.error(f"[Jina test] Failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
