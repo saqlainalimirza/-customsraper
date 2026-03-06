@@ -702,7 +702,8 @@ async def scrape_jina_test(request: DirectScrapeRequest):
     logger.info(f"[Jina test] Scraping {request.url}")
     try:
         jina = JinaScraper()
-        jina_url, jina_content = await jina.scrape_main_page(request.url)
+        jina_url = request.url
+        jina_content = await jina.scrape_url(request.url)
         logger.info(f"[Jina test] Got {len(jina_content)} chars from {jina_url}")
 
         ai_client = get_ai_client(request.ai_provider)

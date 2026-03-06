@@ -33,7 +33,10 @@ class JinaScraper:
     def _normalize_url(domain_or_url: str) -> str:
         if domain_or_url.startswith(("http://", "https://")):
             parsed = urlparse(domain_or_url)
-            return f"{parsed.scheme}://{parsed.netloc}".rstrip("/")
+            url = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
+            if parsed.query:
+                url += f"?{parsed.query}"
+            return url.rstrip("/")
         return f"https://{domain_or_url}".rstrip("/")
 
     async def scrape_url(self, url: str) -> str:
