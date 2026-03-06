@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     openrouter_api_key: str
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
     scrapingbee_api_key: str = ""
+    jina_api_key: str = ""
     
     gpt_model: str = "openai/gpt-4o-mini"
     claude_model: str = "anthropic/claude-3.5-sonnet"

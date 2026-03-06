@@ -1,7 +1,7 @@
 import json
 import asyncio
 from contextlib import asynccontextmanager
-from typing import Literal
+from typing import Any, Literal
 from urllib.parse import urlparse
 
 from fastapi import FastAPI, HTTPException, Query
@@ -12,6 +12,7 @@ from db.supabase_client import SupabaseClient
 from scraper.crawler import DomainCrawler
 from scraper.content import ContentScraper
 from scraper.scrapingbee import ScrapingBeeScraper
+from scraper.jina_scraper import JinaScraper
 from ai.openrouter_client import OpenRouterClient
 from ai.base import AIClient
 from utils.logging import setup_logger, log_pipeline_step, log_summary
@@ -98,7 +99,7 @@ class DirectScrapeResponse(BaseModel):
     all_urls: list[str]
     filtered_urls: list[str]
     scraped_content: dict[str, str]
-    extracted_answer: str
+    extracted_answer: Any  # parsed JSON dict, or "NOTFOUND" string
     filter_input_tokens: int
     filter_output_tokens: int
     extract_input_tokens: int
@@ -548,47 +549,68 @@ async def scrape_direct_url(request: DirectScrapeRequest):
         extract_output_tokens = extract_response.output_tokens
         extracted_answer = extract_response.content
         
-        # STEP 5: Check if data was not found and fallback to ScrapingBee
-        if extract_response.content.strip().upper() == "NOTFOUND":
+        # STEP 5: Fallback chain if data not found — ScrapingBee → Jina Reader
+        if extracted_answer.strip().upper() == "NOTFOUND":
             logger.warning(f"[{domain}] Data not found with regular scraping, falling back to ScrapingBee")
-            
+            scrapingbee_ok = False
+
             try:
-                # Use ScrapingBee to scrape the main page more thoroughly
                 scrapingbee = ScrapingBeeScraper()
                 resolved_url, main_page_content = await scrapingbee.scrape_main_page(domain)
-                
-                # Try extraction again with ScrapingBee content
-                scrapingbee_scraped_content = {resolved_url: main_page_content}
-                scrapingbee_extract_response = await ai_client.extract_answer(
-                    scrapingbee_scraped_content, 
-                    request.prompt_extract
-                )
-                
-                # Update with ScrapingBee results
-                scraped_content = scrapingbee_scraped_content
+                scrapingbee_scraped = {resolved_url: main_page_content}
+                sb_extract = await ai_client.extract_answer(scrapingbee_scraped, request.prompt_extract)
+
+                scraped_content = scrapingbee_scraped
                 filtered_urls = [resolved_url]
-                extracted_answer = scrapingbee_extract_response.content
-                extract_input_tokens += scrapingbee_extract_response.input_tokens
-                extract_output_tokens += scrapingbee_extract_response.output_tokens
-                
+                extracted_answer = sb_extract.content
+                extract_input_tokens += sb_extract.input_tokens
+                extract_output_tokens += sb_extract.output_tokens
+                scrapingbee_ok = True
                 logger.info(f"[{domain}] ScrapingBee fallback successful")
-                
-            except Exception as fallback_error:
-                logger.error(f"[{domain}] ScrapingBee fallback failed: {str(fallback_error)}")
-                # Keep original NOTFOUND response if fallback fails
-        
+
+            except Exception as sb_error:
+                logger.error(f"[{domain}] ScrapingBee fallback failed: {sb_error}")
+
+            # Jina fallback: triggered if ScrapingBee failed OR still returned NOTFOUND
+            if not scrapingbee_ok or extracted_answer.strip().upper() == "NOTFOUND":
+                logger.warning(f"[{domain}] Falling back to Jina Reader")
+                try:
+                    jina = JinaScraper()
+                    jina_url, jina_content = await jina.scrape_main_page(domain)
+                    jina_scraped = {jina_url: jina_content}
+                    jina_extract = await ai_client.extract_answer(jina_scraped, request.prompt_extract)
+
+                    scraped_content = jina_scraped
+                    filtered_urls = [jina_url]
+                    extracted_answer = jina_extract.content
+                    extract_input_tokens += jina_extract.input_tokens
+                    extract_output_tokens += jina_extract.output_tokens
+                    logger.info(f"[{domain}] Jina fallback successful")
+
+                except Exception as jina_error:
+                    logger.error(f"[{domain}] Jina fallback failed: {jina_error}")
+                    # Keep whatever result we have at this point
+
+        # Parse extracted_answer JSON into a dict when possible
+        parsed_answer: Any = extracted_answer
+        if extracted_answer.strip().upper() != "NOTFOUND":
+            try:
+                parsed_answer = json.loads(extracted_answer)
+            except (json.JSONDecodeError, ValueError):
+                parsed_answer = extracted_answer  # Return as raw string if not valid JSON
+
         # Calculate total tokens
         total_tokens = (
             filter_input_tokens + filter_output_tokens +
             extract_input_tokens + extract_output_tokens
         )
-        
+
         return DirectScrapeResponse(
             url=request.url,
             all_urls=all_urls,
             filtered_urls=filtered_urls,
             scraped_content=scraped_content,
-            extracted_answer=extracted_answer,
+            extracted_answer=parsed_answer,
             filter_input_tokens=filter_input_tokens,
             filter_output_tokens=filter_output_tokens,
             extract_input_tokens=extract_input_tokens,
