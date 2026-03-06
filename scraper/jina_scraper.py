@@ -1,5 +1,5 @@
 import httpx
-from urllib.parse import urlparse
+from urllib.parse import urlparse, quote
 
 from config import get_settings
 from utils.logging import setup_logger, log_request
@@ -7,6 +7,7 @@ from utils.logging import setup_logger, log_request
 logger = setup_logger(__name__)
 
 JINA_READER_BASE = "https://r.jina.ai/"
+JINA_SEARCH_BASE = "https://s.jina.ai/"
 
 
 class JinaScraper:
@@ -85,3 +86,39 @@ class JinaScraper:
         raise ValueError(
             f"Jina Reader failed to scrape {domain_or_url}: {last_error}"
         )
+
+    async def search(self, query: str) -> list[dict]:
+        """
+        Search the web via Jina Search (s.jina.ai) and return up to 5 results.
+        Each result: {url, title, content}
+        """
+        search_url = f"{JINA_SEARCH_BASE}?q={quote(query)}"
+        headers = {
+            **self._build_headers(),
+            "Accept": "application/json",
+            "X-Return-Format": "json",
+        }
+
+        async with httpx.AsyncClient(timeout=45.0, follow_redirects=True) as client:
+            log_request(logger, "GET", search_url, extra={"provider": "jina-search"})
+            response = await client.get(search_url, headers=headers)
+            response.raise_for_status()
+
+            data = response.json()
+            # Handle both {"data": [...]} and flat [...] response shapes
+            items = data.get("data", data) if isinstance(data, dict) else data
+            if not isinstance(items, list):
+                items = []
+
+            results = [
+                {
+                    "url": item.get("url", ""),
+                    "title": item.get("title", ""),
+                    "content": item.get("content", item.get("description", "")),
+                }
+                for item in items
+                if item.get("url")
+            ]
+
+            logger.info(f"[Jina Search] '{query[:60]}' → {len(results)} results")
+            return results[:5]
