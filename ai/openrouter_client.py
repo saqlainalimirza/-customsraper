@@ -157,13 +157,11 @@ class OpenRouterClient(AIClient):
         self,
         data: dict[str, str],
         prompt_extract: str,
-        prompt_filter: str = "",
     ) -> AIResponse:
         """Generate a web search query from input data + extraction goal."""
         data_block = "\n".join(f"{k}: {v}" for k, v in data.items())
         user_message = GENERATE_SEARCH_QUERY_USER_PROMPT.format(
             data_block=data_block,
-            prompt_filter=prompt_filter or "any relevant pages",
             prompt_extract=prompt_extract,
         )
 

@@ -756,7 +756,7 @@ async def scrape_jina_test(request: JinaSmartRequest):
 
         # ── TRACK B: Search → read results ────────────────────────────────────
         async def run_track_b() -> tuple[str, dict[str, str]]:
-            query_response = await ai_client.generate_search_query(clean_data, prompt_extract, prompt_filter)
+            query_response = await ai_client.generate_search_query(clean_data, prompt_extract)
             search_query = query_response.content.strip()
             logger.info(f"[Jina Smart][Track B] AI search query: '{search_query}'")
 
