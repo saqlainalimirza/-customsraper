@@ -704,37 +704,29 @@ async def scrape_with_scrapingbee_only(request: FallbackScrapeRequest):
 @app.post("/scrape/jina-test")
 async def scrape_jina_test(request: JinaSmartRequest):
     """
-    Two-track Jina pipeline (runs in parallel):
+    Two-track Jina pipeline (both tracks run in parallel, readers run in parallel):
 
-    Track A — Direct website scrape:
-      Jina Reader scrapes data.website directly so we always have
-      the real site content (city, specialty, services, etc.)
+    Track A — Direct website scrape via Jina Reader
+    Track B — AI search query → Jina Search → parallel Jina Reader on top 3 results
 
-    Track B — Web search for extra context:
-      AI builds a targeted search query → Jina Search finds relevant URLs
-      → Jina Reader scrapes each result for supporting info
-
-    Both tracks are combined and fed to a final AI extraction node.
+    Combined content → final AI extraction.
+    Hard timeout: 55s total.
     """
     logger.info(f"[Jina Smart] Starting pipeline with data keys: {list(request.data.keys())}")
 
-    try:
+    async def _run() -> dict:
         ai_client = get_ai_client(request.ai_provider)
         jina = JinaScraper()
 
-        # Allow prompts to be nested inside data (common when sending from tools like Clay/Zapier)
+        # Allow prompts nested inside data (Clay/Zapier style)
         prompt_extract = request.prompt_extract or request.data.get("prompt_extract", "")
         if not prompt_extract:
             raise HTTPException(status_code=422, detail="prompt_extract is required (top-level or inside data)")
 
-        prompt_filter = request.prompt_filter or request.data.get("prompt_filter", "")
-
-        # Strip prompt keys from data — only company/person fields go to AI for query generation
+        # Strip prompt keys — only company fields go to AI for query generation
         PROMPT_KEYS = {"prompt_extract", "prompt_filter"}
         clean_data = {k: v for k, v in request.data.items() if k not in PROMPT_KEYS}
 
-        # ── TRACK A: Direct website scrape ────────────────────────────────────
-        # Detect website from data fields: "website", "url", "domain"
         website_url = (
             clean_data.get("website")
             or clean_data.get("url")
@@ -742,67 +734,69 @@ async def scrape_jina_test(request: JinaSmartRequest):
             or ""
         ).strip()
 
+        # ── TRACK A: Direct website scrape ────────────────────────────────────
         async def run_track_a() -> dict[str, str]:
             if not website_url:
-                logger.warning("[Jina Smart][Track A] No website provided, skipping direct scrape")
+                logger.warning("[Jina Smart][Track A] No website provided, skipping")
                 return {}
             try:
                 url, content = await jina.scrape_main_page(website_url)
-                logger.info(f"[Jina Smart][Track A] Scraped {len(content)} chars from {url}")
+                logger.info(f"[Jina Smart][Track A] {len(content)} chars from {url}")
                 return {url: content}
             except Exception as e:
-                logger.warning(f"[Jina Smart][Track A] Direct scrape failed for {website_url}: {e}")
+                logger.warning(f"[Jina Smart][Track A] Failed for {website_url}: {e}")
                 return {}
 
-        # ── TRACK B: Search → read results ────────────────────────────────────
+        # ── TRACK B: Search → parallel read ───────────────────────────────────
         async def run_track_b() -> tuple[str, dict[str, str]]:
             query_response = await ai_client.generate_search_query(clean_data, prompt_extract)
             search_query = query_response.content.strip()
-            logger.info(f"[Jina Smart][Track B] AI search query: '{search_query}'")
-
+            logger.info(f"[Jina Smart][Track B] Search query: '{search_query}'")
             if not search_query:
                 return "", {}
 
             search_results = await jina.search(search_query)
             if not search_results:
-                logger.warning(f"[Jina Smart][Track B] No search results for: '{search_query}'")
+                logger.warning(f"[Jina Smart][Track B] No results for: '{search_query}'")
                 return search_query, {}
 
-            content_map: dict[str, str] = {}
-            for result in search_results:
-                url = result["url"]
-                # Skip if same domain as the direct website (avoid duplicating content)
-                if website_url and extract_domain(url) == extract_domain(website_url):
-                    logger.info(f"[Jina Smart][Track B] Skipping {url} (same domain as direct site)")
-                    continue
-                try:
-                    full_content = await jina.scrape_url(url)
-                    content_map[url] = full_content
-                    logger.info(f"[Jina Smart][Track B] Reader got {len(full_content)} chars from {url}")
-                except Exception as read_err:
-                    logger.warning(f"[Jina Smart][Track B] Reader failed for {url}, using snippet: {read_err}")
-                    if result.get("content"):
-                        content_map[url] = result["content"]
+            # Cap at 3, skip same domain as Track A
+            filtered = [
+                r for r in search_results
+                if not (website_url and extract_domain(r["url"]) == extract_domain(website_url))
+            ][:3]
 
+            async def read_one(result: dict) -> tuple[str, str]:
+                url = result["url"]
+                try:
+                    content = await jina.scrape_url(url)
+                    logger.info(f"[Jina Smart][Track B] {len(content)} chars from {url}")
+                    return url, content
+                except Exception as e:
+                    logger.warning(f"[Jina Smart][Track B] Reader failed for {url}: {e}")
+                    snippet = result.get("content", "")
+                    return url, snippet
+
+            pairs = await asyncio.gather(*[read_one(r) for r in filtered])
+            content_map = {url: content for url, content in pairs if content}
             return search_query, content_map
 
-        # ── Run both tracks in parallel ────────────────────────────────────────
+        # ── Both tracks in parallel ────────────────────────────────────────────
         track_a_result, (search_query, track_b_result) = await asyncio.gather(
             run_track_a(),
             run_track_b(),
         )
 
-        # ── Combine: Track A first (direct site), then Track B (search) ───────
         combined_content: dict[str, str] = {}
-        combined_content.update(track_a_result)   # direct site takes priority
-        combined_content.update(track_b_result)   # search results add extra context
+        combined_content.update(track_a_result)
+        combined_content.update(track_b_result)
 
         if not combined_content:
             raise HTTPException(status_code=500, detail="Both tracks failed — no content scraped")
 
         logger.info(
-            f"[Jina Smart] Combined: {len(track_a_result)} direct page(s) + "
-            f"{len(track_b_result)} search page(s) = {len(combined_content)} total"
+            f"[Jina Smart] Combined: {len(track_a_result)} direct + "
+            f"{len(track_b_result)} search = {len(combined_content)} pages"
         )
 
         # ── Final AI extraction ────────────────────────────────────────────────
@@ -815,8 +809,6 @@ async def scrape_jina_test(request: JinaSmartRequest):
             except (json.JSONDecodeError, ValueError):
                 pass
 
-        total_tokens = extract_response.input_tokens + extract_response.output_tokens
-
         return {
             "track_a_urls": list(track_a_result.keys()),
             "track_b_search_query": search_query,
@@ -825,9 +817,14 @@ async def scrape_jina_test(request: JinaSmartRequest):
             "total_content_length": sum(len(v) for v in combined_content.values()),
             "scraped_content": combined_content,
             "extracted_answer": parsed_answer,
-            "total_tokens": total_tokens,
+            "total_tokens": extract_response.input_tokens + extract_response.output_tokens,
         }
 
+    try:
+        return await asyncio.wait_for(_run(), timeout=55.0)
+    except asyncio.TimeoutError:
+        logger.error("[Jina Smart] Pipeline timed out after 55s")
+        raise HTTPException(status_code=504, detail="Pipeline timed out — site may be slow or blocking requests")
     except HTTPException:
         raise
     except Exception as e:
