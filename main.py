@@ -784,6 +784,7 @@ async def scrape_jina_test(request: JinaSmartRequest):
             "search_urls": search_urls,
             "pages_scraped": len(scraped_content),
             "total_content_length": sum(len(v) for v in scraped_content.values()),
+            "scraped_content": scraped_content,
             "extracted_answer": parsed_answer,
             "total_tokens": total_tokens,
         }
