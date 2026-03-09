@@ -57,3 +57,21 @@ class AIClient(ABC):
             AIResponse with the extracted answer
         """
         pass
+
+    @abstractmethod
+    async def generate_search_query(
+        self,
+        data: dict[str, str],
+        prompt_extract: str,
+    ) -> AIResponse:
+        """
+        Generate a Jina search query from arbitrary input data.
+
+        Args:
+            data: Key-value pairs describing the company/person (name, website, linkedin, etc.)
+            prompt_extract: What information we want to find
+
+        Returns:
+            AIResponse with the search query string in content
+        """
+        pass

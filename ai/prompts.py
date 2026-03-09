@@ -14,6 +14,23 @@ Pick MAX 5 URLs from this list (ONLY from this list, do not invent URLs):
 JSON array:"""
 
 
+GENERATE_SEARCH_QUERY_SYSTEM_PROMPT = """You generate a concise web search query to find specific information about a company or person.
+
+RULES:
+1. Return ONLY the search query string — no explanation, no quotes, no punctuation at the end
+2. Make it specific enough to surface the right page (e.g. include the company name + topic)
+3. Keep it under 12 words
+4. Incorporate any provided identifiers (name, website, LinkedIn, etc.) as needed"""
+
+GENERATE_SEARCH_QUERY_USER_PROMPT = """Here is what we know about this company/person:
+{data_block}
+
+We are looking for:
+{prompt_extract}
+
+Write the best web search query to find this information:"""
+
+
 EXTRACT_ANSWER_SYSTEM_PROMPT = """You are a data extraction assistant. Your task is to analyze scraped web content and extract specific information based on the user's question.
 
 CRITICAL RULES:

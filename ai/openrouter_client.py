@@ -9,6 +9,8 @@ from .prompts import (
     URL_FILTER_USER_PROMPT,
     EXTRACT_ANSWER_SYSTEM_PROMPT,
     EXTRACT_ANSWER_USER_PROMPT,
+    GENERATE_SEARCH_QUERY_SYSTEM_PROMPT,
+    GENERATE_SEARCH_QUERY_USER_PROMPT,
 )
 
 logger = setup_logger(__name__)
@@ -143,6 +145,52 @@ class OpenRouterClient(AIClient):
             output_tokens=output_tokens,
         )
         
+        return AIResponse(
+            content=content,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            model=self.model,
+            raw_response=response,
+        )
+
+    async def generate_search_query(
+        self,
+        data: dict[str, str],
+        prompt_extract: str,
+    ) -> AIResponse:
+        """Generate a web search query from input data + extraction goal."""
+        data_block = "\n".join(f"{k}: {v}" for k, v in data.items())
+        user_message = GENERATE_SEARCH_QUERY_USER_PROMPT.format(
+            data_block=data_block,
+            prompt_extract=prompt_extract,
+        )
+
+        response = await self.client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": GENERATE_SEARCH_QUERY_SYSTEM_PROMPT},
+                {"role": "user", "content": user_message},
+            ],
+            temperature=0.2,
+            extra_headers={
+                "HTTP-Referer": "https://scaletopia.com",
+                "X-Title": "Scaletopia Web Scraper",
+            },
+        )
+
+        content = (response.choices[0].message.content or "").strip().strip('"')
+        input_tokens = response.usage.prompt_tokens if response.usage else 0
+        output_tokens = response.usage.completion_tokens if response.usage else 0
+
+        log_tokens(
+            logger,
+            operation="generate_search_query",
+            model=self.model,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+        )
+
+        logger.info(f"[AI] Generated search query: '{content}'")
         return AIResponse(
             content=content,
             input_tokens=input_tokens,

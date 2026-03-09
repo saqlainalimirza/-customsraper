@@ -94,6 +94,12 @@ class DirectScrapeRequest(BaseModel):
     ai_provider: Literal["gpt", "claude"] = "gpt"
 
 
+class JinaSmartRequest(BaseModel):
+    data: dict[str, str]  # e.g. {"name": "Acme", "website": "acme.com", "linkedin": "..."}
+    prompt_extract: str
+    ai_provider: Literal["gpt", "claude"] = "gpt"
+
+
 class DirectScrapeResponse(BaseModel):
     url: str
     all_urls: list[str]
@@ -694,49 +700,58 @@ async def scrape_with_scrapingbee_only(request: FallbackScrapeRequest):
 
 
 @app.post("/scrape/jina-test")
-async def scrape_jina_test(request: DirectScrapeRequest):
+async def scrape_jina_test(request: JinaSmartRequest):
     """
-    Jina-powered pipeline:
-      1. Jina Search  — finds the most relevant URLs for the domain + question
-      2. Jina Reader  — scrapes full content from each URL
-      3. AI Extract   — answers the prompt from combined content
+    Smart Jina pipeline:
+      1. AI generates a search query from the provided data fields
+      2. Jina Search  — finds the most relevant URLs
+      3. Jina Reader  — scrapes full content from each URL
+      4. AI Extract   — returns a parsed JSON answer
+
+    Pass any key-value data you have (name, website, linkedin, etc.) in the `data` field.
     """
-    domain = extract_domain(request.url)
-    logger.info(f"[Jina pipeline] Starting for {domain}")
+    logger.info(f"[Jina Smart] Starting pipeline with data keys: {list(request.data.keys())}")
 
     try:
-        jina = JinaScraper()
         ai_client = get_ai_client(request.ai_provider)
+        jina = JinaScraper()
 
-        # STEP 1: Jina Search — build query from domain + what we want to find
-        search_query = f"{domain} {request.prompt_filter}"
-        logger.info(f"[Jina pipeline] Searching: {search_query[:80]}")
+        # STEP 1: AI generates search query from supplied data
+        query_response = await ai_client.generate_search_query(request.data, request.prompt_extract)
+        search_query = query_response.content.strip()
+        query_tokens_in = query_response.input_tokens
+        query_tokens_out = query_response.output_tokens
+        logger.info(f"[Jina Smart] AI search query: '{search_query}'")
+
+        if not search_query:
+            raise HTTPException(status_code=500, detail="AI failed to generate a search query")
+
+        # STEP 2: Jina Search — get top relevant URLs
         search_results = await jina.search(search_query)
-
         if not search_results:
-            raise HTTPException(status_code=404, detail=f"Jina Search returned no results for: {search_query}")
+            raise HTTPException(status_code=404, detail=f"Jina Search returned no results for: '{search_query}'")
 
         search_urls = [r["url"] for r in search_results]
-        logger.info(f"[Jina pipeline] Search found {len(search_urls)} URLs: {search_urls}")
+        logger.info(f"[Jina Smart] Found {len(search_urls)} URLs: {search_urls}")
 
-        # STEP 2: Jina Reader — scrape each URL for full content
-        # Fall back to the search snippet if the reader fails for a URL
+        # STEP 3: Jina Reader — scrape full content per URL
+        # Fall back to the search snippet if reader fails for a URL
         scraped_content: dict[str, str] = {}
         for result in search_results:
             url = result["url"]
             try:
                 full_content = await jina.scrape_url(url)
                 scraped_content[url] = full_content
-                logger.info(f"[Jina pipeline] Reader scraped {len(full_content)} chars from {url}")
+                logger.info(f"[Jina Smart] Reader got {len(full_content)} chars from {url}")
             except Exception as read_err:
-                logger.warning(f"[Jina pipeline] Reader failed for {url}, using search snippet: {read_err}")
+                logger.warning(f"[Jina Smart] Reader failed for {url}, using search snippet: {read_err}")
                 if result.get("content"):
                     scraped_content[url] = result["content"]
 
         if not scraped_content:
             raise HTTPException(status_code=500, detail="Jina Reader failed to retrieve content from any URL")
 
-        # STEP 3: AI extraction
+        # STEP 4: AI extracts the answer
         extract_response = await ai_client.extract_answer(scraped_content, request.prompt_extract)
 
         parsed_answer: Any = extract_response.content
@@ -746,22 +761,24 @@ async def scrape_jina_test(request: DirectScrapeRequest):
             except (json.JSONDecodeError, ValueError):
                 pass
 
-        total_content_length = sum(len(v) for v in scraped_content.values())
+        total_tokens = (
+            query_tokens_in + query_tokens_out +
+            extract_response.input_tokens + extract_response.output_tokens
+        )
 
         return {
-            "domain": domain,
             "search_query": search_query,
             "search_urls": search_urls,
             "pages_scraped": len(scraped_content),
-            "total_content_length": total_content_length,
+            "total_content_length": sum(len(v) for v in scraped_content.values()),
             "extracted_answer": parsed_answer,
-            "input_tokens": extract_response.input_tokens,
-            "output_tokens": extract_response.output_tokens,
+            "total_tokens": total_tokens,
         }
+
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"[Jina pipeline] Failed: {e}")
+        logger.error(f"[Jina Smart] Failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
