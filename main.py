@@ -704,13 +704,17 @@ async def scrape_with_scrapingbee_only(request: FallbackScrapeRequest):
 @app.post("/scrape/jina-test")
 async def scrape_jina_test(request: JinaSmartRequest):
     """
-    Smart Jina pipeline:
-      1. AI generates a search query from the provided data fields
-      2. Jina Search  — finds the most relevant URLs
-      3. Jina Reader  — scrapes full content from each URL
-      4. AI Extract   — returns a parsed JSON answer
+    Two-track Jina pipeline (runs in parallel):
 
-    Pass any key-value data you have (name, website, linkedin, etc.) in the `data` field.
+    Track A — Direct website scrape:
+      Jina Reader scrapes data.website directly so we always have
+      the real site content (city, specialty, services, etc.)
+
+    Track B — Web search for extra context:
+      AI builds a targeted search query → Jina Search finds relevant URLs
+      → Jina Reader scrapes each result for supporting info
+
+    Both tracks are combined and fed to a final AI extraction node.
     """
     logger.info(f"[Jina Smart] Starting pipeline with data keys: {list(request.data.keys())}")
 
@@ -725,47 +729,84 @@ async def scrape_jina_test(request: JinaSmartRequest):
 
         prompt_filter = request.prompt_filter or request.data.get("prompt_filter", "")
 
-        # Strip prompt keys from data — only company/person fields should go to AI for query generation
+        # Strip prompt keys from data — only company/person fields go to AI for query generation
         PROMPT_KEYS = {"prompt_extract", "prompt_filter"}
         clean_data = {k: v for k, v in request.data.items() if k not in PROMPT_KEYS}
 
-        # STEP 1: AI generates search query from supplied data + page type hints
-        query_response = await ai_client.generate_search_query(clean_data, prompt_extract, prompt_filter)
-        search_query = query_response.content.strip()
-        query_tokens_in = query_response.input_tokens
-        query_tokens_out = query_response.output_tokens
-        logger.info(f"[Jina Smart] AI search query: '{search_query}'")
+        # ── TRACK A: Direct website scrape ────────────────────────────────────
+        # Detect website from data fields: "website", "url", "domain"
+        website_url = (
+            clean_data.get("website")
+            or clean_data.get("url")
+            or clean_data.get("domain")
+            or ""
+        ).strip()
 
-        if not search_query:
-            raise HTTPException(status_code=500, detail="AI failed to generate a search query")
-
-        # STEP 2: Jina Search — get top relevant URLs
-        search_results = await jina.search(search_query)
-        if not search_results:
-            raise HTTPException(status_code=404, detail=f"Jina Search returned no results for: '{search_query}'")
-
-        search_urls = [r["url"] for r in search_results]
-        logger.info(f"[Jina Smart] Found {len(search_urls)} URLs: {search_urls}")
-
-        # STEP 3: Jina Reader — scrape full content per URL
-        # Fall back to the search snippet if reader fails for a URL
-        scraped_content: dict[str, str] = {}
-        for result in search_results:
-            url = result["url"]
+        async def run_track_a() -> dict[str, str]:
+            if not website_url:
+                logger.warning("[Jina Smart][Track A] No website provided, skipping direct scrape")
+                return {}
             try:
-                full_content = await jina.scrape_url(url)
-                scraped_content[url] = full_content
-                logger.info(f"[Jina Smart] Reader got {len(full_content)} chars from {url}")
-            except Exception as read_err:
-                logger.warning(f"[Jina Smart] Reader failed for {url}, using search snippet: {read_err}")
-                if result.get("content"):
-                    scraped_content[url] = result["content"]
+                url, content = await jina.scrape_main_page(website_url)
+                logger.info(f"[Jina Smart][Track A] Scraped {len(content)} chars from {url}")
+                return {url: content}
+            except Exception as e:
+                logger.warning(f"[Jina Smart][Track A] Direct scrape failed for {website_url}: {e}")
+                return {}
 
-        if not scraped_content:
-            raise HTTPException(status_code=500, detail="Jina Reader failed to retrieve content from any URL")
+        # ── TRACK B: Search → read results ────────────────────────────────────
+        async def run_track_b() -> tuple[str, dict[str, str]]:
+            query_response = await ai_client.generate_search_query(clean_data, prompt_extract, prompt_filter)
+            search_query = query_response.content.strip()
+            logger.info(f"[Jina Smart][Track B] AI search query: '{search_query}'")
 
-        # STEP 4: AI extracts the answer
-        extract_response = await ai_client.extract_answer(scraped_content, prompt_extract)
+            if not search_query:
+                return "", {}
+
+            search_results = await jina.search(search_query)
+            if not search_results:
+                logger.warning(f"[Jina Smart][Track B] No search results for: '{search_query}'")
+                return search_query, {}
+
+            content_map: dict[str, str] = {}
+            for result in search_results:
+                url = result["url"]
+                # Skip if same domain as the direct website (avoid duplicating content)
+                if website_url and extract_domain(url) == extract_domain(website_url):
+                    logger.info(f"[Jina Smart][Track B] Skipping {url} (same domain as direct site)")
+                    continue
+                try:
+                    full_content = await jina.scrape_url(url)
+                    content_map[url] = full_content
+                    logger.info(f"[Jina Smart][Track B] Reader got {len(full_content)} chars from {url}")
+                except Exception as read_err:
+                    logger.warning(f"[Jina Smart][Track B] Reader failed for {url}, using snippet: {read_err}")
+                    if result.get("content"):
+                        content_map[url] = result["content"]
+
+            return search_query, content_map
+
+        # ── Run both tracks in parallel ────────────────────────────────────────
+        track_a_result, (search_query, track_b_result) = await asyncio.gather(
+            run_track_a(),
+            run_track_b(),
+        )
+
+        # ── Combine: Track A first (direct site), then Track B (search) ───────
+        combined_content: dict[str, str] = {}
+        combined_content.update(track_a_result)   # direct site takes priority
+        combined_content.update(track_b_result)   # search results add extra context
+
+        if not combined_content:
+            raise HTTPException(status_code=500, detail="Both tracks failed — no content scraped")
+
+        logger.info(
+            f"[Jina Smart] Combined: {len(track_a_result)} direct page(s) + "
+            f"{len(track_b_result)} search page(s) = {len(combined_content)} total"
+        )
+
+        # ── Final AI extraction ────────────────────────────────────────────────
+        extract_response = await ai_client.extract_answer(combined_content, prompt_extract)
 
         parsed_answer: Any = extract_response.content
         if extract_response.content.strip().upper() != "NOTFOUND":
@@ -774,17 +815,15 @@ async def scrape_jina_test(request: JinaSmartRequest):
             except (json.JSONDecodeError, ValueError):
                 pass
 
-        total_tokens = (
-            query_tokens_in + query_tokens_out +
-            extract_response.input_tokens + extract_response.output_tokens
-        )
+        total_tokens = extract_response.input_tokens + extract_response.output_tokens
 
         return {
-            "search_query": search_query,
-            "search_urls": search_urls,
-            "pages_scraped": len(scraped_content),
-            "total_content_length": sum(len(v) for v in scraped_content.values()),
-            "scraped_content": scraped_content,
+            "track_a_urls": list(track_a_result.keys()),
+            "track_b_search_query": search_query,
+            "track_b_urls": list(track_b_result.keys()),
+            "pages_scraped": len(combined_content),
+            "total_content_length": sum(len(v) for v in combined_content.values()),
+            "scraped_content": combined_content,
             "extracted_answer": parsed_answer,
             "total_tokens": total_tokens,
         }
