@@ -96,7 +96,9 @@ class DirectScrapeRequest(BaseModel):
 
 class JinaSmartRequest(BaseModel):
     data: dict[str, str]  # e.g. {"name": "Acme", "website": "acme.com", "linkedin": "..."}
-    prompt_extract: str
+    # prompt_extract and prompt_filter can be top-level fields OR nested inside data — both work
+    prompt_extract: str | None = None
+    prompt_filter: str | None = None
     ai_provider: Literal["gpt", "claude"] = "gpt"
 
 
@@ -716,8 +718,19 @@ async def scrape_jina_test(request: JinaSmartRequest):
         ai_client = get_ai_client(request.ai_provider)
         jina = JinaScraper()
 
-        # STEP 1: AI generates search query from supplied data
-        query_response = await ai_client.generate_search_query(request.data, request.prompt_extract)
+        # Allow prompts to be nested inside data (common when sending from tools like Clay/Zapier)
+        prompt_extract = request.prompt_extract or request.data.get("prompt_extract", "")
+        if not prompt_extract:
+            raise HTTPException(status_code=422, detail="prompt_extract is required (top-level or inside data)")
+
+        prompt_filter = request.prompt_filter or request.data.get("prompt_filter", "")
+
+        # Strip prompt keys from data — only company/person fields should go to AI for query generation
+        PROMPT_KEYS = {"prompt_extract", "prompt_filter"}
+        clean_data = {k: v for k, v in request.data.items() if k not in PROMPT_KEYS}
+
+        # STEP 1: AI generates search query from supplied data + page type hints
+        query_response = await ai_client.generate_search_query(clean_data, prompt_extract, prompt_filter)
         search_query = query_response.content.strip()
         query_tokens_in = query_response.input_tokens
         query_tokens_out = query_response.output_tokens
@@ -752,7 +765,7 @@ async def scrape_jina_test(request: JinaSmartRequest):
             raise HTTPException(status_code=500, detail="Jina Reader failed to retrieve content from any URL")
 
         # STEP 4: AI extracts the answer
-        extract_response = await ai_client.extract_answer(scraped_content, request.prompt_extract)
+        extract_response = await ai_client.extract_answer(scraped_content, prompt_extract)
 
         parsed_answer: Any = extract_response.content
         if extract_response.content.strip().upper() != "NOTFOUND":

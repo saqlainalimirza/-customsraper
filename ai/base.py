@@ -63,6 +63,7 @@ class AIClient(ABC):
         self,
         data: dict[str, str],
         prompt_extract: str,
+        prompt_filter: str = "",
     ) -> AIResponse:
         """
         Generate a Jina search query from arbitrary input data.
@@ -70,6 +71,7 @@ class AIClient(ABC):
         Args:
             data: Key-value pairs describing the company/person (name, website, linkedin, etc.)
             prompt_extract: What information we want to find
+            prompt_filter: Page types / topics to target (e.g. services, about, locations)
 
         Returns:
             AIResponse with the search query string in content

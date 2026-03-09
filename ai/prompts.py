@@ -25,6 +25,9 @@ RULES:
 GENERATE_SEARCH_QUERY_USER_PROMPT = """Here is what we know about this company/person:
 {data_block}
 
+Page types to target:
+{prompt_filter}
+
 We are looking for:
 {prompt_extract}
 
