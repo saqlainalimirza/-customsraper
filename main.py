@@ -749,37 +749,47 @@ async def scrape_jina_test(request: JinaSmartRequest):
 
         # ── TRACK B: Search → parallel read ───────────────────────────────────
         async def run_track_b() -> tuple[str, dict[str, str]]:
-            query_response = await ai_client.generate_search_query(clean_data, prompt_extract)
-            search_query = query_response.content.strip()
-            logger.info(f"[Jina Smart][Track B] Search query: '{search_query}'")
-            if not search_query:
-                return "", {}
+            try:
+                query_response = await ai_client.generate_search_query(clean_data, prompt_extract)
+                search_query = query_response.content.strip()
+                logger.info(f"[Jina Smart][Track B] Search query: '{search_query}'")
+                if not search_query:
+                    return "", {}
 
-            search_results = await jina.search(search_query)
-            if not search_results:
-                logger.warning(f"[Jina Smart][Track B] No results for: '{search_query}'")
-                return search_query, {}
-
-            # Cap at 3, skip same domain as Track A
-            filtered = [
-                r for r in search_results
-                if not (website_url and extract_domain(r["url"]) == extract_domain(website_url))
-            ][:3]
-
-            async def read_one(result: dict) -> tuple[str, str]:
-                url = result["url"]
                 try:
-                    content = await jina.scrape_url(url)
-                    logger.info(f"[Jina Smart][Track B] {len(content)} chars from {url}")
-                    return url, content
-                except Exception as e:
-                    logger.warning(f"[Jina Smart][Track B] Reader failed for {url}: {e}")
-                    snippet = result.get("content", "")
-                    return url, snippet
+                    search_results = await jina.search(search_query)
+                except Exception as search_err:
+                    logger.warning(f"[Jina Smart][Track B] Search failed (continuing with Track A only): {search_err}")
+                    return search_query, {}
 
-            pairs = await asyncio.gather(*[read_one(r) for r in filtered])
-            content_map = {url: content for url, content in pairs if content}
-            return search_query, content_map
+                if not search_results:
+                    logger.warning(f"[Jina Smart][Track B] No results for: '{search_query}'")
+                    return search_query, {}
+
+                # Cap at 3, skip same domain as Track A
+                filtered = [
+                    r for r in search_results
+                    if not (website_url and extract_domain(r["url"]) == extract_domain(website_url))
+                ][:3]
+
+                async def read_one(result: dict) -> tuple[str, str]:
+                    url = result["url"]
+                    try:
+                        content = await jina.scrape_url(url)
+                        logger.info(f"[Jina Smart][Track B] {len(content)} chars from {url}")
+                        return url, content
+                    except Exception as e:
+                        logger.warning(f"[Jina Smart][Track B] Reader failed for {url}: {e}")
+                        snippet = result.get("content", "")
+                        return url, snippet
+
+                pairs = await asyncio.gather(*[read_one(r) for r in filtered])
+                content_map = {url: content for url, content in pairs if content}
+                return search_query, content_map
+
+            except Exception as e:
+                logger.warning(f"[Jina Smart][Track B] Track failed entirely (continuing with Track A only): {e}")
+                return "", {}
 
         # ── Both tracks in parallel ────────────────────────────────────────────
         track_a_result, (search_query, track_b_result) = await asyncio.gather(
