@@ -19,8 +19,8 @@ GENERATE_SEARCH_QUERY_SYSTEM_PROMPT = """You are a search query writer. Given wh
 RULES:
 1. Return ONLY the search query string — no explanation, no quotes, no punctuation at the end
 2. Read the extraction goal and decide what to search for — you choose the best query
-3. Keep it under 12 words
-4. Include the company name and the most relevant topic from the extraction goal"""
+3. Keep it under 15 words
+4. Include the company url and the most relevant topic from the extraction goal"""
 
 GENERATE_SEARCH_QUERY_USER_PROMPT = """Company/person data:
 {data_block}
