@@ -21,7 +21,8 @@ RULES:
 2. Read the extraction goal and decide what to search for — you choose the best query
 3. Keep it under 15 words
 4. Include the company NAME (not URL) and the most relevant topic from the extraction goal
-5. NEVER use site: operators — the goal is to find info from external sources like directories, review sites, and listings"""
+5. NEVER use site: operators — the goal is to find info from external sources like directories, review sites, and listings
+6. If a LinkedIn URL is provided, use the company slug in it to clarify what the company actually does (e.g. "infinity-home-health-services" → add "home health" to the query)"""
 
 GENERATE_SEARCH_QUERY_USER_PROMPT = """Company/person data:
 {data_block}
