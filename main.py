@@ -766,11 +766,8 @@ async def scrape_jina_test(request: JinaSmartRequest):
                     logger.warning(f"[Jina Smart][Track B] No results for: '{search_query}'")
                     return search_query, {}
 
-                # Cap at 3, skip same domain as Track A
-                filtered = [
-                    r for r in search_results
-                    if not (website_url and extract_domain(r["url"]) == extract_domain(website_url))
-                ][:3]
+                # Cap at 3 results
+                filtered = search_results[:3]
 
                 async def read_one(result: dict) -> tuple[str, str]:
                     url = result["url"]
