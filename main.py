@@ -771,14 +771,18 @@ async def scrape_jina_test(request: JinaSmartRequest):
 
                 async def read_one(result: dict) -> tuple[str, str]:
                     url = result["url"]
+                    title = result.get("title", "")
+                    snippet = result.get("content", "")  # Jina Search always returns this
                     try:
-                        content = await jina.scrape_url(url)
-                        logger.info(f"[Jina Smart][Track B] {len(content)} chars from {url}")
-                        return url, content
+                        full_content = await jina.scrape_url(url)
+                        logger.info(f"[Jina Smart][Track B] {len(full_content)} chars from {url}")
+                        # Prepend search snippet so LLM gets both the summary and full page
+                        combined = f"[Search result: {title}]\n{snippet}\n\n[Full page content]\n{full_content}" if snippet else full_content
+                        return url, combined
                     except Exception as e:
                         logger.warning(f"[Jina Smart][Track B] Reader failed for {url}: {e}")
-                        snippet = result.get("content", "")
-                        return url, snippet
+                        # Fall back to search snippet only
+                        return url, f"[Search result: {title}]\n{snippet}" if snippet else ""
 
                 pairs = await asyncio.gather(*[read_one(r) for r in filtered])
                 content_map = {url: content for url, content in pairs if content}
