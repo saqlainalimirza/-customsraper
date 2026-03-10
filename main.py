@@ -821,9 +821,9 @@ async def scrape_jina_test(request: JinaSmartRequest):
         }
 
     try:
-        return await asyncio.wait_for(_run(), timeout=55.0)
+        return await asyncio.wait_for(_run(), timeout=25.0)
     except asyncio.TimeoutError:
-        logger.error("[Jina Smart] Pipeline timed out after 55s")
+        logger.error("[Jina Smart] Pipeline timed out after 25s")
         raise HTTPException(status_code=504, detail="Pipeline timed out — site may be slow or blocking requests")
     except HTTPException:
         raise

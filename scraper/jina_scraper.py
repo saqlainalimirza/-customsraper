@@ -47,7 +47,7 @@ class JinaScraper:
         """
         jina_url = f"{JINA_READER_BASE}{url}"
 
-        async with httpx.AsyncClient(timeout=45.0, follow_redirects=True) as client:
+        async with httpx.AsyncClient(timeout=12.0, follow_redirects=True) as client:
             log_request(logger, "GET", jina_url, extra={"provider": "jina"})
             response = await client.get(jina_url, headers=self._build_headers())
             response.raise_for_status()
@@ -59,7 +59,7 @@ class JinaScraper:
                 )
 
             logger.info(f"[Jina] Scraped {len(content)} chars from {url}")
-            return content[:40000]
+            return content[:20000]
 
     async def scrape_main_page(self, domain_or_url: str) -> tuple[str, str]:
         """
@@ -93,13 +93,11 @@ class JinaScraper:
         Each result: {url, title, content}
         """
         search_url = f"{JINA_SEARCH_BASE}?q={quote(query)}"
-        headers = {
-            **self._build_headers(),
-            "Accept": "application/json",
-            "X-Return-Format": "json",
-        }
+        headers = {"Accept": "application/json"}
+        if self.settings.jina_api_key:
+            headers["Authorization"] = f"Bearer {self.settings.jina_api_key}"
 
-        async with httpx.AsyncClient(timeout=45.0, follow_redirects=True) as client:
+        async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
             log_request(logger, "GET", search_url, extra={"provider": "jina-search"})
             response = await client.get(search_url, headers=headers)
             response.raise_for_status()
