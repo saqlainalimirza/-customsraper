@@ -36,21 +36,21 @@ Write the best search query:"""
 EXTRACT_ANSWER_SYSTEM_PROMPT = """You are a data extraction assistant. Your task is to analyze scraped web content and extract specific information based on the user's question.
 
 CRITICAL RULES:
-1. ALWAYS return a valid JSON object
+1. ALWAYS return a valid JSON object — never return NOTFOUND for the whole response
 2. Parse the user's question to identify each piece of information requested
 3. Create a JSON key for each piece of information using snake_case
 4. Only use information found in the provided content
-5. If ANY requested information is not found in the content, return ONLY the word "NOTFOUND" (no JSON, no explanation)
+5. If a specific field cannot be found, set its value to "not found" in the JSON — do NOT skip the key
 6. Be precise and factual
-7. Content labelled [SOURCE: COMPANY WEBSITE] is about the target company — prioritise this
-8. Content labelled [SOURCE: WEB SEARCH RESULT] is from external pages — only use it to fill gaps the website didn't cover, and make sure it is actually about the same company
+7. Content labelled [SOURCE: COMPANY WEBSITE] is the primary source — always prioritise it
+8. Content labelled [SOURCE: WEB SEARCH RESULT] is secondary — only use it to fill gaps, and only if the result is clearly about the same company
 
 Example:
 Question: "What services does this company offer and what are their top 2 case studies?"
 Response format:
 {
   "services_offered": "Service 1, Service 2, Service 3...",
-  "case_studies": "Case study 1 description, Case study 2 description..."
+  "case_studies": "not found"
 }"""
 
 EXTRACT_ANSWER_USER_PROMPT = """Based on the following scraped content from multiple web pages, answer this question:
@@ -64,9 +64,10 @@ EXTRACT_ANSWER_USER_PROMPT = """Based on the following scraped content from mult
 --- END OF CONTENT ---
 
 IMPORTANT INSTRUCTIONS:
-1. Analyze the question above and identify each piece of information requested
-2. Return a JSON object with a key for each piece of information (use snake_case for keys)
-3. If you CANNOT find the requested information in the scraped content, respond with ONLY the word "NOTFOUND" (no JSON, no explanation)
-4. If you CAN find the information, provide a comprehensive JSON response based solely on the information found
+1. Identify every field requested in the question above
+2. Always return a JSON object with a key for every requested field
+3. If a field is found, fill it with the value from the content
+4. If a field cannot be found in the content, set it to "not found" — never omit the key
+5. Never return a bare NOTFOUND string — always return JSON
 
 Return your response as valid JSON:"""
