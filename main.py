@@ -748,26 +748,31 @@ async def scrape_jina_test(request: JinaSmartRequest):
                 return {}
 
         # ── TRACK B: Search → parallel read ───────────────────────────────────
-        async def run_track_b() -> tuple[str, dict[str, str]]:
+        async def run_track_b() -> tuple[str, list[dict], dict[str, str]]:
             try:
                 query_response = await ai_client.generate_search_query(clean_data, prompt_extract)
                 search_query = query_response.content.strip()
                 logger.info(f"[Jina Smart][Track B] Search query: '{search_query}'")
                 if not search_query:
-                    return "", {}
+                    return "", [], {}
 
                 try:
                     search_results = await jina.search(search_query)
                 except Exception as search_err:
                     logger.warning(f"[Jina Smart][Track B] Search failed (continuing with Track A only): {search_err}")
-                    return search_query, {}
+                    return search_query, [], {}
 
                 if not search_results:
                     logger.warning(f"[Jina Smart][Track B] No results for: '{search_query}'")
-                    return search_query, {}
+                    return search_query, [], {}
 
                 # Cap at 3 results
                 filtered = search_results[:3]
+                raw_search_results = [
+                    {"url": r["url"], "title": r.get("title", ""), "snippet": r.get("content", "")}
+                    for r in search_results
+                ]
+                logger.info(f"[Jina Smart][Track B] Raw search results: {[r['url'] for r in raw_search_results]}")
 
                 async def read_one(result: dict) -> tuple[str, str]:
                     url = result["url"]
@@ -786,14 +791,14 @@ async def scrape_jina_test(request: JinaSmartRequest):
 
                 pairs = await asyncio.gather(*[read_one(r) for r in filtered])
                 content_map = {url: content for url, content in pairs if content}
-                return search_query, content_map
+                return search_query, raw_search_results, content_map
 
             except Exception as e:
                 logger.warning(f"[Jina Smart][Track B] Track failed entirely (continuing with Track A only): {e}")
-                return "", {}
+                return "", [], {}
 
         # ── Both tracks in parallel ────────────────────────────────────────────
-        track_a_result, (search_query, track_b_result) = await asyncio.gather(
+        track_a_result, (search_query, raw_search_results, track_b_result) = await asyncio.gather(
             run_track_a(),
             run_track_b(),
         )
@@ -823,6 +828,7 @@ async def scrape_jina_test(request: JinaSmartRequest):
         return {
             "track_a_urls": list(track_a_result.keys()),
             "track_b_search_query": search_query,
+            "track_b_search_results": raw_search_results,
             "track_b_urls": list(track_b_result.keys()),
             "pages_scraped": len(combined_content),
             "total_content_length": sum(len(v) for v in combined_content.values()),

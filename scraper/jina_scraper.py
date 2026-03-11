@@ -93,7 +93,10 @@ class JinaScraper:
         Each result: {url, title, content}
         """
         search_url = f"{JINA_SEARCH_BASE}?q={quote(query)}"
-        headers = {"Accept": "application/json"}
+        headers = {
+            "Accept": "application/json",
+            "X-Respond-With": "no-content",  # Return metadata only (faster, no full page reads)
+        }
         if self.settings.jina_api_key:
             headers["Authorization"] = f"Bearer {self.settings.jina_api_key}"
 
@@ -102,21 +105,29 @@ class JinaScraper:
             response = await client.get(search_url, headers=headers)
             response.raise_for_status()
 
-            data = response.json()
+            # Jina Search returns JSON when Accept: application/json is set
+            # Response shape: {"code": 200, "data": [{url, title, description, content}, ...]}
+            try:
+                data = response.json()
+            except Exception:
+                logger.warning(f"[Jina Search] Non-JSON response ({response.status_code}), raw: {response.text[:200]}")
+                return []
+
             # Handle both {"data": [...]} and flat [...] response shapes
             items = data.get("data", data) if isinstance(data, dict) else data
             if not isinstance(items, list):
+                logger.warning(f"[Jina Search] Unexpected response shape: {str(data)[:200]}")
                 items = []
 
             results = [
                 {
                     "url": item.get("url", ""),
                     "title": item.get("title", ""),
-                    "content": item.get("content", item.get("description", "")),
+                    "content": item.get("description", item.get("content", "")),
                 }
                 for item in items
                 if item.get("url")
             ]
 
-            logger.info(f"[Jina Search] '{query[:60]}' → {len(results)} results")
+            logger.info(f"[Jina Search] '{query[:60]}' → {len(results)} results: {[r['url'] for r in results]}")
             return results[:5]
