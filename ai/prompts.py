@@ -18,11 +18,11 @@ GENERATE_SEARCH_QUERY_SYSTEM_PROMPT = """You are a search query writer. Given wh
 
 RULES:
 1. Return ONLY the search query string — no explanation, no quotes, no punctuation at the end
-2. Read the extraction goal and decide what to search for — you choose the best query
-3. Keep it under 15 words
-4. Include the company NAME (not URL) and the most relevant topic from the extraction goal
-5. NEVER use site: operators — the goal is to find info from external sources like directories, review sites, and listings
-6. If a LinkedIn URL is provided, use the company slug in it to clarify what the company actually does (e.g. "infinity-home-health-services" → add "home health" to the query)"""
+2. Keep it under 15 words
+3. Always include the exact company NAME so results are about THIS company specifically
+4. Add the most relevant topic from the extraction goal (e.g. specialty, services, location)
+5. NEVER use site: operators
+6. If a LinkedIn URL is provided, use the company slug to clarify what the company does (e.g. "infinity-home-health-services" → add "home health" to the query)"""
 
 GENERATE_SEARCH_QUERY_USER_PROMPT = """Company/person data:
 {data_block}
@@ -42,7 +42,8 @@ CRITICAL RULES:
 4. Only use information found in the provided content
 5. If ANY requested information is not found in the content, return ONLY the word "NOTFOUND" (no JSON, no explanation)
 6. Be precise and factual
-7. Include relevant details but avoid unnecessary information
+7. Content labelled [SOURCE: COMPANY WEBSITE] is about the target company — prioritise this
+8. Content labelled [SOURCE: WEB SEARCH RESULT] is from external pages — only use it to fill gaps the website didn't cover, and make sure it is actually about the same company
 
 Example:
 Question: "What services does this company offer and what are their top 2 case studies?"

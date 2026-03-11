@@ -791,8 +791,12 @@ async def scrape_jina_test(request: JinaSmartRequest):
         )
 
         combined_content: dict[str, str] = {}
-        combined_content.update(track_a_result)
-        combined_content.update(track_b_result)
+        # Label Track A content so AI knows this is the actual company website
+        for url, text in track_a_result.items():
+            combined_content[url] = f"[SOURCE: COMPANY WEBSITE - scraped directly]\n{text}"
+        # Label Track B content so AI knows these are external search results
+        for url, text in track_b_result.items():
+            combined_content[url] = f"[SOURCE: WEB SEARCH RESULT for query: '{search_query}']\n{text}"
 
         if not combined_content:
             raise HTTPException(status_code=500, detail="Both tracks failed — no content scraped")
