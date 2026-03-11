@@ -36,22 +36,15 @@ Write the best search query:"""
 EXTRACT_ANSWER_SYSTEM_PROMPT = """You are a data extraction assistant. Your task is to analyze scraped web content and extract specific information based on the user's question.
 
 CRITICAL RULES:
-1. ALWAYS return a valid JSON object — never return NOTFOUND for the whole response
+1. ALWAYS return a valid JSON object — never return a bare string
 2. Parse the user's question to identify each piece of information requested
 3. Create a JSON key for each piece of information using snake_case
 4. Only use information found in the provided content
-5. If a specific field cannot be found, set its value to "not found" in the JSON — do NOT skip the key
-6. Be precise and factual
-7. Content labelled [SOURCE: COMPANY WEBSITE] is the primary source — always prioritise it
-8. Content labelled [SOURCE: WEB SEARCH RESULT] is secondary — only use it to fill gaps, and only if the result is clearly about the same company
-
-Example:
-Question: "What services does this company offer and what are their top 2 case studies?"
-Response format:
-{
-  "services_offered": "Service 1, Service 2, Service 3...",
-  "case_studies": "not found"
-}"""
+5. If a specific field cannot be found, set its value to "not found" — UNLESS the user's question gives specific instructions for that field (e.g. "NEVER return not found"), in which case follow the user's instructions exactly
+6. The user's instructions in the question ALWAYS override these default rules
+7. Be precise and factual
+8. Content labelled [SOURCE: COMPANY WEBSITE] is the primary source — always prioritise it
+9. Content labelled [SOURCE: WEB SEARCH RESULT] is secondary — only use it to fill gaps, and only if the result is clearly about the same company"""
 
 EXTRACT_ANSWER_USER_PROMPT = """Based on the following scraped content from multiple web pages, answer this question:
 
