@@ -766,31 +766,18 @@ async def scrape_jina_test(request: JinaSmartRequest):
                     logger.warning(f"[Jina Smart][Track B] No results for: '{search_query}'")
                     return search_query, [], {}
 
-                # Cap at 3 results
-                filtered = search_results[:3]
                 raw_search_results = [
                     {"url": r["url"], "title": r.get("title", ""), "snippet": r.get("content", "")}
                     for r in search_results
                 ]
-                logger.info(f"[Jina Smart][Track B] Raw search results: {[r['url'] for r in raw_search_results]}")
+                logger.info(f"[Jina Smart][Track B] {len(raw_search_results)} search results: {[r['url'] for r in raw_search_results]}")
 
-                async def read_one(result: dict) -> tuple[str, str]:
-                    url = result["url"]
-                    title = result.get("title", "")
-                    snippet = result.get("content", "")  # Jina Search always returns this
-                    try:
-                        full_content = await jina.scrape_url(url)
-                        logger.info(f"[Jina Smart][Track B] {len(full_content)} chars from {url}")
-                        # Prepend search snippet so LLM gets both the summary and full page
-                        combined = f"[Search result: {title}]\n{snippet}\n\n[Full page content]\n{full_content}" if snippet else full_content
-                        return url, combined
-                    except Exception as e:
-                        logger.warning(f"[Jina Smart][Track B] Reader failed for {url}: {e}")
-                        # Fall back to search snippet only
-                        return url, f"[Search result: {title}]\n{snippet}" if snippet else ""
-
-                pairs = await asyncio.gather(*[read_one(r) for r in filtered])
-                content_map = {url: content for url, content in pairs if content}
+                # Pass search results directly to LLM — no re-scraping
+                content_map = {
+                    r["url"]: f"[Title]: {r.get('title', '')}\n[Snippet]: {r.get('content', '')}"
+                    for r in search_results
+                    if r.get("url")
+                }
                 return search_query, raw_search_results, content_map
 
             except Exception as e:
@@ -826,13 +813,19 @@ async def scrape_jina_test(request: JinaSmartRequest):
                 pass
 
         return {
+            # ── Track A: Jina Reader on the website directly ──────────────────
             "track_a_urls": list(track_a_result.keys()),
-            "track_b_search_query": search_query,
-            "track_b_search_results": raw_search_results,
+            "track_a_content": track_a_result,  # {url: full page text from Jina Reader}
+
+            # ── Track B: AI query → Jina Search → snippets to LLM ────────────
+            "track_b_search_query": search_query,                # query the AI generated
+            "track_b_search_results": raw_search_results,        # raw [{url, title, snippet}] from s.jina.ai
             "track_b_urls": list(track_b_result.keys()),
+            "track_b_content": track_b_result,  # {url: "Title + Snippet" sent to LLM}
+
+            # ── Combined ──────────────────────────────────────────────────────
             "pages_scraped": len(combined_content),
             "total_content_length": sum(len(v) for v in combined_content.values()),
-            "scraped_content": combined_content,
             "extracted_answer": parsed_answer,
             "total_tokens": extract_response.input_tokens + extract_response.output_tokens,
         }
