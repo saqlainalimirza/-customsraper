@@ -19,6 +19,18 @@ from utils.logging import setup_logger, log_pipeline_step, log_summary
 
 logger = setup_logger(__name__)
 
+
+def strip_json(text: str) -> str:
+    """Strip markdown code fences like ```json ... ``` or ``` ... ``` from AI responses."""
+    text = text.strip()
+    if text.startswith("```"):
+        # Remove opening fence (```json or ```)
+        text = text[text.index("\n") + 1:] if "\n" in text else text[3:]
+    if text.endswith("```"):
+        text = text[:text.rfind("```")]
+    return text.strip()
+
+
 PARALLEL_WORKERS = 30
 # No browser semaphore needed - using simple HTTP now!
 FALLBACK_WORKERS = 10
@@ -603,7 +615,7 @@ async def scrape_direct_url(request: DirectScrapeRequest):
         parsed_answer: Any = extracted_answer
         if extracted_answer.strip().upper() != "NOTFOUND":
             try:
-                parsed_answer = json.loads(extracted_answer)
+                parsed_answer = json.loads(strip_json(extracted_answer))
             except (json.JSONDecodeError, ValueError):
                 parsed_answer = extracted_answer  # Return as raw string if not valid JSON
 
@@ -812,7 +824,7 @@ async def scrape_jina_test(request: JinaSmartRequest):
         parsed_answer: Any = extract_response.content
         if extract_response.content.strip().upper() != "NOTFOUND":
             try:
-                parsed_answer = json.loads(extract_response.content)
+                parsed_answer = json.loads(strip_json(extract_response.content))
             except (json.JSONDecodeError, ValueError):
                 pass
 
