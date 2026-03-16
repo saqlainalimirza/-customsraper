@@ -111,7 +111,7 @@ class JinaSmartRequest(BaseModel):
     # prompt_extract and prompt_filter can be top-level fields OR nested inside data — both work
     prompt_extract: str | None = None
     prompt_filter: str | None = None
-    ai_provider: Literal["gpt", "claude"] = "gpt"
+    ai_provider: Literal["gpt", "claude", "gemini"] = "gemini"
 
 
 class DirectScrapeResponse(BaseModel):
@@ -128,10 +128,10 @@ class DirectScrapeResponse(BaseModel):
 
 
 def get_ai_client(provider: str) -> AIClient:
-    if provider in ("gpt", "claude"):
+    if provider in ("gpt", "claude", "gemini"):
         return OpenRouterClient(model_type=provider)
     else:
-        raise ValueError(f"Unknown AI provider: {provider}. Use 'gpt' or 'claude'")
+        raise ValueError(f"Unknown AI provider: {provider}. Use 'gpt', 'claude', or 'gemini'")
 
 
 def extract_domain(domain_or_url: str) -> str:
@@ -846,16 +846,46 @@ async def scrape_jina_test(request: JinaSmartRequest):
             "total_tokens": extract_response.input_tokens + extract_response.output_tokens,
         }
 
-    try:
-        return await asyncio.wait_for(_run(), timeout=25.0)
-    except asyncio.TimeoutError:
-        logger.error("[Jina Smart] Pipeline timed out after 25s")
-        raise HTTPException(status_code=504, detail="Pipeline timed out — site may be slow or blocking requests")
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"[Jina Smart] Failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    MAX_RETRIES = 3
+    last_result: dict | None = None
+
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            result = await asyncio.wait_for(_run(), timeout=25.0)
+            answer = result.get("extracted_answer", "NOTFOUND")
+
+            if isinstance(answer, str) and answer.strip().upper() == "NOTFOUND":
+                if attempt < MAX_RETRIES:
+                    logger.warning(
+                        f"[Jina Smart] Attempt {attempt}/{MAX_RETRIES} returned NOTFOUND — retrying..."
+                    )
+                    last_result = result
+                    continue
+                else:
+                    logger.warning(
+                        f"[Jina Smart] All {MAX_RETRIES} attempts returned NOTFOUND — stopping."
+                    )
+                    return result
+
+            return result
+
+        except asyncio.TimeoutError:
+            logger.error(f"[Jina Smart] Attempt {attempt}/{MAX_RETRIES} timed out after 25s")
+            if attempt == MAX_RETRIES:
+                raise HTTPException(status_code=504, detail="Pipeline timed out — site may be slow or blocking requests")
+            continue
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"[Jina Smart] Attempt {attempt}/{MAX_RETRIES} failed: {e}")
+            if attempt == MAX_RETRIES:
+                raise HTTPException(status_code=500, detail=str(e))
+            continue
+
+    # Should never reach here, but satisfy type checker
+    if last_result is not None:
+        return last_result
+    raise HTTPException(status_code=500, detail="Unexpected error in retry loop")
 
 
 @app.get("/health")

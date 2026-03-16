@@ -28,6 +28,8 @@ class OpenRouterClient(AIClient):
         
         if model_type == "claude":
             self.model = self.settings.claude_model
+        elif model_type == "gemini":
+            self.model = self.settings.gemini_model
         else:
             self.model = self.settings.gpt_model
         

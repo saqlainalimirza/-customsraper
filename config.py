@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     
     gpt_model: str = "openai/gpt-4o-mini"
     claude_model: str = "anthropic/claude-3.5-sonnet"
+    gemini_model: str = "google/gemini-2.5-flash-preview"
     
     default_ai_provider: str = "gpt"
     max_urls_per_domain: int = 500
