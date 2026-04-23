@@ -11,6 +11,8 @@ from .prompts import (
     EXTRACT_ANSWER_USER_PROMPT,
     GENERATE_SEARCH_QUERY_SYSTEM_PROMPT,
     GENERATE_SEARCH_QUERY_USER_PROMPT,
+    PICK_RELEVANT_LINKS_SYSTEM_PROMPT,
+    PICK_RELEVANT_LINKS_USER_PROMPT,
 )
 
 logger = setup_logger(__name__)
@@ -195,6 +197,83 @@ class OpenRouterClient(AIClient):
         logger.info(f"[AI] Generated search query: '{content}'")
         return AIResponse(
             content=content,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            model=self.model,
+            raw_response=response,
+        )
+
+    async def pick_relevant_links(
+        self,
+        links: list[dict],
+        prompt_extract: str,
+        homepage_url: str,
+        max_links: int = 3,
+    ) -> AIResponse:
+        """
+        Given a list of {text, url} links from a homepage and an extraction goal,
+        ask the LLM to pick the URLs most likely to contain the answer.
+        Returns AIResponse with JSON {"urls": [...]} in content.
+        """
+        if not links:
+            return AIResponse(content='{"urls": []}', input_tokens=0, output_tokens=0, model=self.model)
+
+        # Cap input: a homepage rarely has >150 useful links; beyond that we're sending noise
+        capped = links[:150]
+        links_block = "\n".join(f"- {l['text']} → {l['url']}" for l in capped)
+
+        user_message = PICK_RELEVANT_LINKS_USER_PROMPT.format(
+            prompt_extract=prompt_extract,
+            homepage_url=homepage_url,
+            links_block=links_block,
+        )
+
+        response = await self.client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": PICK_RELEVANT_LINKS_SYSTEM_PROMPT},
+                {"role": "user", "content": user_message},
+            ],
+            temperature=0.1,
+            extra_headers={
+                "HTTP-Referer": "https://scaletopia.com",
+                "X-Title": "Scaletopia Web Scraper",
+            },
+        )
+
+        raw = response.choices[0].message.content or '{"urls": []}'
+        input_tokens = response.usage.prompt_tokens if response.usage else 0
+        output_tokens = response.usage.completion_tokens if response.usage else 0
+
+        log_tokens(
+            logger,
+            operation="pick_relevant_links",
+            model=self.model,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+        )
+
+        # Robust parse: accept {"urls": [...]}, bare list, or JSON-inside-markdown
+        urls: list[str] = []
+        try:
+            parsed = json.loads(raw)
+        except json.JSONDecodeError:
+            import re as _re
+            match = _re.search(r'\{.*\}|\[.*\]', raw, _re.DOTALL)
+            parsed = json.loads(match.group(0)) if match else None
+
+        if isinstance(parsed, dict) and isinstance(parsed.get("urls"), list):
+            urls = [u for u in parsed["urls"] if isinstance(u, str)]
+        elif isinstance(parsed, list):
+            urls = [u for u in parsed if isinstance(u, str)]
+
+        # Hard-filter to links that were actually in the input (no hallucinated URLs)
+        allowed = {l["url"] for l in capped}
+        urls = [u for u in urls if u in allowed][:max_links]
+
+        logger.info(f"[AI] Picked {len(urls)} relevant link(s) from {len(capped)}: {urls}")
+        return AIResponse(
+            content=json.dumps({"urls": urls}),
             input_tokens=input_tokens,
             output_tokens=output_tokens,
             model=self.model,

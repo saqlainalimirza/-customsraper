@@ -746,18 +746,63 @@ async def scrape_jina_test(request: JinaSmartRequest):
             or ""
         ).strip()
 
-        # ── TRACK A: Direct website scrape ────────────────────────────────────
-        async def run_track_a() -> dict[str, str]:
+        # ── TRACK A: Direct website scrape + 1-hop agentic link discovery ────
+        # Goal: extraction goals like "case studies" live on subpages with
+        # unpredictable names (/work, /portfolio, /what-we-do, ...). We fetch
+        # the homepage in markdown (links intact), let the LLM pick up to 3
+        # relevant internal links, and Jina-read those in parallel.
+        async def run_track_a() -> tuple[dict[str, str], list[str]]:
             if not website_url:
                 logger.warning("[Jina Smart][Track A] No website provided, skipping")
-                return {}
+                return {}, []
             try:
-                url, content = await jina.scrape_main_page(website_url)
-                logger.info(f"[Jina Smart][Track A] {len(content)} chars from {url}")
-                return {url: content}
+                homepage_url, homepage_md = await jina.scrape_main_page(website_url, keep_links=True)
+                logger.info(f"[Jina Smart][Track A] Homepage: {len(homepage_md)} chars from {homepage_url}")
             except Exception as e:
-                logger.warning(f"[Jina Smart][Track A] Failed for {website_url}: {e}")
-                return {}
+                logger.warning(f"[Jina Smart][Track A] Homepage fetch failed for {website_url}: {e}")
+                return {}, []
+
+            result: dict[str, str] = {homepage_url: homepage_md}
+            picked_urls: list[str] = []
+
+            # Only attempt link discovery if the AI client supports it (OpenRouter)
+            if not hasattr(ai_client, "pick_relevant_links"):
+                return result, picked_urls
+
+            try:
+                links = jina.extract_links_from_markdown(homepage_md, homepage_url)
+                logger.info(f"[Jina Smart][Track A] Extracted {len(links)} internal links from homepage")
+                if not links:
+                    return result, picked_urls
+
+                pick_response = await ai_client.pick_relevant_links(
+                    links=links,
+                    prompt_extract=prompt_extract,
+                    homepage_url=homepage_url,
+                    max_links=3,
+                )
+                try:
+                    picked_urls = json.loads(pick_response.content).get("urls", []) or []
+                except (json.JSONDecodeError, AttributeError):
+                    picked_urls = []
+
+                if not picked_urls:
+                    logger.info("[Jina Smart][Track A] No relevant subpages identified")
+                    return result, picked_urls
+
+                # Fetch picked subpages in parallel (plain text, not markdown)
+                subpage_tasks = [jina.scrape_url(u) for u in picked_urls]
+                subpage_results = await asyncio.gather(*subpage_tasks, return_exceptions=True)
+                for url, res in zip(picked_urls, subpage_results):
+                    if isinstance(res, Exception):
+                        logger.warning(f"[Jina Smart][Track A] Subpage fetch failed for {url}: {res}")
+                        continue
+                    result[url] = res
+                    logger.info(f"[Jina Smart][Track A] Subpage: {len(res)} chars from {url}")
+            except Exception as e:
+                logger.warning(f"[Jina Smart][Track A] Link discovery failed (keeping homepage only): {e}")
+
+            return result, picked_urls
 
         # ── TRACK B: Search → parallel read ───────────────────────────────────
         async def run_track_b() -> tuple[str, list[dict], dict[str, str]]:
@@ -797,15 +842,17 @@ async def scrape_jina_test(request: JinaSmartRequest):
                 return "", [], {}
 
         # ── Both tracks in parallel ────────────────────────────────────────────
-        track_a_result, (search_query, raw_search_results, track_b_result) = await asyncio.gather(
+        (track_a_result, track_a_picked_urls), (search_query, raw_search_results, track_b_result) = await asyncio.gather(
             run_track_a(),
             run_track_b(),
         )
 
         combined_content: dict[str, str] = {}
-        # Label Track A content so AI knows this is the actual company website
+        # Label Track A content so AI knows this is the actual company website.
+        # The first entry is the homepage; any others are AI-picked subpages.
         for url, text in track_a_result.items():
-            combined_content[url] = f"[SOURCE: COMPANY WEBSITE - scraped directly]\n{text}"
+            label = "COMPANY WEBSITE - subpage picked by link discovery" if url in track_a_picked_urls else "COMPANY WEBSITE - homepage"
+            combined_content[url] = f"[SOURCE: {label}]\n{text}"
         # Label Track B content so AI knows these are external search results
         for url, text in track_b_result.items():
             combined_content[url] = f"[SOURCE: WEB SEARCH RESULT for query: '{search_query}']\n{text}"
@@ -832,6 +879,7 @@ async def scrape_jina_test(request: JinaSmartRequest):
             # ── Track A: Jina Reader on the website directly ──────────────────
             "track_a_urls": list(track_a_result.keys()),
             "track_a_content": track_a_result,  # {url: full page text from Jina Reader}
+            "track_a_picked_subpages": track_a_picked_urls,  # AI-picked subpages beyond the homepage
 
             # ── Track B: AI query → Jina Search → snippets to LLM ────────────
             "track_b_search_query": search_query,                # query the AI generated

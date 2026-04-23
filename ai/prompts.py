@@ -33,6 +33,30 @@ Extraction goal (this is what we need to find):
 Write the best search query:"""
 
 
+PICK_RELEVANT_LINKS_SYSTEM_PROMPT = """You are a website navigator. Given a homepage's internal links and a data-extraction goal, pick the links MOST LIKELY to contain the requested information.
+
+RULES:
+1. Return ONLY a JSON object: {"urls": ["https://...", ...]} — no prose, no explanation
+2. Return AT MOST 3 URLs, ordered best-first
+3. ONLY pick URLs from the provided list — never invent or modify URLs
+4. Prefer links whose anchor text OR URL path matches the goal's intent, even if the wording differs (e.g. for "case studies" also accept: work, portfolio, projects, clients, success-stories, what-we-do, showcase, our-work)
+5. For team/people goals: accept "about", "team", "leadership", "people", "who-we-are"
+6. For pricing goals: accept "pricing", "plans", "packages", "rates"
+7. For services/products: accept "services", "solutions", "products", "offerings", "capabilities", "what-we-do"
+8. Skip navigation/utility pages: contact, login, blog index, privacy, terms, careers (unless goal is about careers)
+9. If nothing looks relevant, return {"urls": []}"""
+
+PICK_RELEVANT_LINKS_USER_PROMPT = """Extraction goal:
+{prompt_extract}
+
+Homepage URL: {homepage_url}
+
+Internal links found on the homepage (anchor text → URL):
+{links_block}
+
+Return JSON with the top (max 3) URLs most likely to contain the answer:"""
+
+
 EXTRACT_ANSWER_SYSTEM_PROMPT = """You are a data extraction assistant. Your task is to analyze scraped web content and extract specific information based on the user's question.
 
 CRITICAL RULES:
