@@ -779,7 +779,7 @@ async def scrape_jina_test(request: JinaSmartRequest):
                     links=links,
                     prompt_extract=prompt_extract,
                     homepage_url=homepage_url,
-                    max_links=3,
+                    max_links=2,
                 )
                 try:
                     picked_urls = json.loads(pick_response.content).get("urls", []) or []
@@ -894,12 +894,18 @@ async def scrape_jina_test(request: JinaSmartRequest):
             "total_tokens": extract_response.input_tokens + extract_response.output_tokens,
         }
 
+    # Retry policy:
+    #   - NOTFOUND  → retry (up to 3×) — content quality issue, retry might help
+    #   - Timeout   → DO NOT retry — slow site won't speed up; fail fast at 504
+    #   - Exception → retry (up to 3×) — usually transient network blips
+    # Per-attempt timeout: 35s (was 25s) — gives slow sites a fair shot in one try
     MAX_RETRIES = 3
+    PER_ATTEMPT_TIMEOUT = 35.0
     last_result: dict | None = None
 
     for attempt in range(1, MAX_RETRIES + 1):
         try:
-            result = await asyncio.wait_for(_run(), timeout=25.0)
+            result = await asyncio.wait_for(_run(), timeout=PER_ATTEMPT_TIMEOUT)
             answer = result.get("extracted_answer", "NOTFOUND")
 
             if isinstance(answer, str) and answer.strip().upper() == "NOTFOUND":
@@ -918,10 +924,10 @@ async def scrape_jina_test(request: JinaSmartRequest):
             return result
 
         except asyncio.TimeoutError:
-            logger.error(f"[Jina Smart] Attempt {attempt}/{MAX_RETRIES} timed out after 25s")
-            if attempt == MAX_RETRIES:
-                raise HTTPException(status_code=504, detail="Pipeline timed out — site may be slow or blocking requests")
-            continue
+            # Don't retry timeouts — a 35s-slow site won't be faster on retry,
+            # we'd just waste another 35s and Clay's HTTP timeout anyway.
+            logger.error(f"[Jina Smart] Timed out after {PER_ATTEMPT_TIMEOUT}s on attempt {attempt} — failing fast (no retry)")
+            raise HTTPException(status_code=504, detail=f"Pipeline timed out after {PER_ATTEMPT_TIMEOUT}s — site may be slow or blocking requests")
         except HTTPException:
             raise
         except Exception as e:
