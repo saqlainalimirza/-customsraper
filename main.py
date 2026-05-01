@@ -841,10 +841,29 @@ async def scrape_jina_test(request: JinaSmartRequest):
                 logger.warning(f"[Jina Smart][Track B] Track failed entirely (continuing with Track A only): {e}")
                 return "", [], {}
 
-        # ── Both tracks in parallel ────────────────────────────────────────────
+        # ── Both tracks in parallel, each with its own per-track deadline ────
+        # If Track A is slow but Track B finishes, we still extract from Track B
+        # (and vice versa). Only fail if BOTH tracks return nothing.
+        TRACK_A_DEADLINE = 25.0  # homepage + LLM pick + 2 subpages
+        TRACK_B_DEADLINE = 15.0  # AI query + Jina search
+
+        async def _track_a_with_timeout():
+            try:
+                return await asyncio.wait_for(run_track_a(), timeout=TRACK_A_DEADLINE)
+            except asyncio.TimeoutError:
+                logger.warning(f"[Jina Smart][Track A] Hit {TRACK_A_DEADLINE}s deadline — using whatever Track B has")
+                return {}, []
+
+        async def _track_b_with_timeout():
+            try:
+                return await asyncio.wait_for(run_track_b(), timeout=TRACK_B_DEADLINE)
+            except asyncio.TimeoutError:
+                logger.warning(f"[Jina Smart][Track B] Hit {TRACK_B_DEADLINE}s deadline — using whatever Track A has")
+                return "", [], {}
+
         (track_a_result, track_a_picked_urls), (search_query, raw_search_results, track_b_result) = await asyncio.gather(
-            run_track_a(),
-            run_track_b(),
+            _track_a_with_timeout(),
+            _track_b_with_timeout(),
         )
 
         combined_content: dict[str, str] = {}
@@ -896,11 +915,13 @@ async def scrape_jina_test(request: JinaSmartRequest):
 
     # Retry policy:
     #   - NOTFOUND  → retry (up to 3×) — content quality issue, retry might help
-    #   - Timeout   → DO NOT retry — slow site won't speed up; fail fast at 504
+    #   - Timeout   → DO NOT retry — per-track deadlines inside _run already
+    #     return partial results; an outer-level timeout means the WHOLE thing
+    #     was hung (rare). One retry would just waste another 50s.
     #   - Exception → retry (up to 3×) — usually transient network blips
-    # Per-attempt timeout: 35s (was 25s) — gives slow sites a fair shot in one try
+    # Outer hard cap: 50s (Track A 25s + Track B 15s + extraction ~5-10s)
     MAX_RETRIES = 3
-    PER_ATTEMPT_TIMEOUT = 35.0
+    PER_ATTEMPT_TIMEOUT = 50.0
     last_result: dict | None = None
 
     for attempt in range(1, MAX_RETRIES + 1):
@@ -924,10 +945,8 @@ async def scrape_jina_test(request: JinaSmartRequest):
             return result
 
         except asyncio.TimeoutError:
-            # Don't retry timeouts — a 35s-slow site won't be faster on retry,
-            # we'd just waste another 35s and Clay's HTTP timeout anyway.
-            logger.error(f"[Jina Smart] Timed out after {PER_ATTEMPT_TIMEOUT}s on attempt {attempt} — failing fast (no retry)")
-            raise HTTPException(status_code=504, detail=f"Pipeline timed out after {PER_ATTEMPT_TIMEOUT}s — site may be slow or blocking requests")
+            logger.error(f"[Jina Smart] Outer timeout after {PER_ATTEMPT_TIMEOUT}s on attempt {attempt} — failing fast (no retry)")
+            raise HTTPException(status_code=504, detail=f"Pipeline timed out after {PER_ATTEMPT_TIMEOUT}s — both tracks hung")
         except HTTPException:
             raise
         except Exception as e:
