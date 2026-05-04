@@ -107,11 +107,22 @@ class DirectScrapeRequest(BaseModel):
 
 
 class JinaSmartRequest(BaseModel):
-    data: dict[str, str]  # e.g. {"name": "Acme", "website": "acme.com", "linkedin": "..."}
-    # prompt_extract and prompt_filter can be top-level fields OR nested inside data — both work
+    data: dict[str, str] | None = None
+    url: str | None = None  # Top-level fallback for Clay integration
+    website: str | None = None  # Top-level fallback
     prompt_extract: str | None = None
     prompt_filter: str | None = None
     ai_provider: Literal["gpt", "claude", "gemini"] = "gemini"
+
+    def normalize(self) -> "JinaSmartRequest":
+        """Merge top-level fields into data dict."""
+        if self.data is None:
+            self.data = {}
+        if self.url and "url" not in self.data:
+            self.data["url"] = self.url
+        if self.website and "website" not in self.data:
+            self.data["website"] = self.website
+        return self
 
 
 class DirectScrapeResponse(BaseModel):
@@ -724,6 +735,7 @@ async def scrape_jina_test(request: JinaSmartRequest):
     Combined content → final AI extraction.
     Hard timeout: 55s total.
     """
+    request.normalize()
     logger.info(f"[Jina Smart] Starting pipeline with data keys: {list(request.data.keys())}")
 
     async def _run() -> dict:
