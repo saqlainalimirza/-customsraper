@@ -733,7 +733,7 @@ async def scrape_jina_test(request: JinaSmartRequest):
     Track B — AI search query → Jina Search → parallel Jina Reader on top 3 results
 
     Combined content → final AI extraction.
-    Hard timeout: 55s total.
+    Per-attempt cap: 30s. Up to 2 attempts → worst case ~61s, typical ~20-25s.
     """
     request.normalize()
     logger.info(f"[Jina Smart] Starting pipeline with data keys: {list(request.data.keys())}")
@@ -856,8 +856,8 @@ async def scrape_jina_test(request: JinaSmartRequest):
         # ── Both tracks in parallel, each with its own per-track deadline ────
         # If Track A is slow but Track B finishes, we still extract from Track B
         # (and vice versa). Only fail if BOTH tracks return nothing.
-        TRACK_A_DEADLINE = 25.0  # homepage + LLM pick + 2 subpages
-        TRACK_B_DEADLINE = 15.0  # AI query + Jina search
+        TRACK_A_DEADLINE = 18.0  # homepage + LLM pick + 2 subpages
+        TRACK_B_DEADLINE = 12.0  # AI query + Jina search
 
         async def _track_a_with_timeout():
             try:
@@ -925,16 +925,21 @@ async def scrape_jina_test(request: JinaSmartRequest):
             "total_tokens": extract_response.input_tokens + extract_response.output_tokens,
         }
 
-    # Retry policy:
-    #   - NOTFOUND  → retry (up to 3×) — content quality issue, retry might help
-    #   - Timeout   → DO NOT retry — per-track deadlines inside _run already
-    #     return partial results; an outer-level timeout means the WHOLE thing
-    #     was hung (rare). One retry would just waste another 50s.
-    #   - Exception → retry (up to 3×) — usually transient network blips
-    # Outer hard cap: 50s (Track A 25s + Track B 15s + extraction ~5-10s)
-    MAX_RETRIES = 3
-    PER_ATTEMPT_TIMEOUT = 50.0
+    # Retry policy: retry on ANY scrape failure — never return a "failed to
+    # scrape" error if a rerun could fix it (failures here are almost always
+    # transient: Jina blips, both-tracks-empty, outer timeout).
+    #   - NOTFOUND          → retry — content quality issue, retry might help
+    #   - Timeout (504)     → retry — transient hang
+    #   - "Both tracks…" 500→ retry — transient Jina failure (rerun works)
+    #   - Exception         → retry — usually transient network blips
+    #   - 422 (no prompt)   → DO NOT retry — genuine client error, won't fix
+    # Outer hard cap per attempt: 30s (Track A 18s + Track B 12s run parallel + extract ~8s)
+    # Typical success ~20-25s; worst case (full fail, 2 attempts) ~61s.
+    MAX_RETRIES = 2
+    PER_ATTEMPT_TIMEOUT = 30.0
+    RETRY_BACKOFF = 1.0  # seconds between attempts — let transient issues clear
     last_result: dict | None = None
+    last_error: str | None = None
 
     for attempt in range(1, MAX_RETRIES + 1):
         try:
@@ -947,6 +952,7 @@ async def scrape_jina_test(request: JinaSmartRequest):
                         f"[Jina Smart] Attempt {attempt}/{MAX_RETRIES} returned NOTFOUND — retrying..."
                     )
                     last_result = result
+                    await asyncio.sleep(RETRY_BACKOFF)
                     continue
                 else:
                     logger.warning(
@@ -957,14 +963,32 @@ async def scrape_jina_test(request: JinaSmartRequest):
             return result
 
         except asyncio.TimeoutError:
-            logger.error(f"[Jina Smart] Outer timeout after {PER_ATTEMPT_TIMEOUT}s on attempt {attempt} — failing fast (no retry)")
-            raise HTTPException(status_code=504, detail=f"Pipeline timed out after {PER_ATTEMPT_TIMEOUT}s — both tracks hung")
-        except HTTPException:
+            last_error = f"Pipeline timed out after {PER_ATTEMPT_TIMEOUT}s"
+            logger.error(f"[Jina Smart] Outer timeout on attempt {attempt}/{MAX_RETRIES}")
+            if attempt < MAX_RETRIES:
+                logger.warning(f"[Jina Smart] Retrying after timeout...")
+                await asyncio.sleep(RETRY_BACKOFF)
+                continue
+            raise HTTPException(status_code=504, detail=last_error)
+        except HTTPException as he:
+            # 422 = genuine client error (missing prompt_extract) — retrying won't help
+            if he.status_code == 422:
+                raise
+            last_error = str(he.detail)
+            logger.error(f"[Jina Smart] Attempt {attempt}/{MAX_RETRIES} failed: {he.detail}")
+            if attempt < MAX_RETRIES:
+                logger.warning(f"[Jina Smart] Retrying after failure...")
+                await asyncio.sleep(RETRY_BACKOFF)
+                continue
             raise
         except Exception as e:
+            last_error = str(e)
             logger.error(f"[Jina Smart] Attempt {attempt}/{MAX_RETRIES} failed: {e}")
-            if attempt == MAX_RETRIES:
-                raise HTTPException(status_code=500, detail=str(e))
+            if attempt < MAX_RETRIES:
+                logger.warning(f"[Jina Smart] Retrying after exception...")
+                await asyncio.sleep(RETRY_BACKOFF)
+                continue
+            raise HTTPException(status_code=500, detail=last_error or str(e))
             continue
 
     # Should never reach here, but satisfy type checker
