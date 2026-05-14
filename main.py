@@ -733,12 +733,13 @@ async def scrape_jina_test(request: JinaSmartRequest):
     Track B — AI search query → Jina Search → parallel Jina Reader on top 3 results
 
     Combined content → final AI extraction.
-    Per-attempt cap: 30s. Up to 2 attempts → worst case ~61s, typical ~20-25s.
+    Attempt 1 is fast (35s cap). The retry is generous (85s cap) — like a fresh
+    manual rerun. Typical success ~20-25s; worst case (slow row, full retry) ~124s.
     """
     request.normalize()
     logger.info(f"[Jina Smart] Starting pipeline with data keys: {list(request.data.keys())}")
 
-    async def _run() -> dict:
+    async def _run(track_a_deadline: float, track_b_deadline: float) -> dict:
         ai_client = get_ai_client(request.ai_provider)
         jina = JinaScraper()
 
@@ -856,21 +857,20 @@ async def scrape_jina_test(request: JinaSmartRequest):
         # ── Both tracks in parallel, each with its own per-track deadline ────
         # If Track A is slow but Track B finishes, we still extract from Track B
         # (and vice versa). Only fail if BOTH tracks return nothing.
-        TRACK_A_DEADLINE = 18.0  # homepage + LLM pick + 2 subpages
-        TRACK_B_DEADLINE = 12.0  # AI query + Jina search
-
+        # Deadlines are passed in: the first run is fast; the retry is generous
+        # (full time budget, like a manual rerun) since NOTFOUND-time is fine.
         async def _track_a_with_timeout():
             try:
-                return await asyncio.wait_for(run_track_a(), timeout=TRACK_A_DEADLINE)
+                return await asyncio.wait_for(run_track_a(), timeout=track_a_deadline)
             except asyncio.TimeoutError:
-                logger.warning(f"[Jina Smart][Track A] Hit {TRACK_A_DEADLINE}s deadline — using whatever Track B has")
+                logger.warning(f"[Jina Smart][Track A] Hit {track_a_deadline}s deadline — using whatever Track B has")
                 return {}, []
 
         async def _track_b_with_timeout():
             try:
-                return await asyncio.wait_for(run_track_b(), timeout=TRACK_B_DEADLINE)
+                return await asyncio.wait_for(run_track_b(), timeout=track_b_deadline)
             except asyncio.TimeoutError:
-                logger.warning(f"[Jina Smart][Track B] Hit {TRACK_B_DEADLINE}s deadline — using whatever Track A has")
+                logger.warning(f"[Jina Smart][Track B] Hit {track_b_deadline}s deadline — using whatever Track A has")
                 return "", [], {}
 
         (track_a_result, track_a_picked_urls), (search_query, raw_search_results, track_b_result) = await asyncio.gather(
@@ -889,7 +889,23 @@ async def scrape_jina_test(request: JinaSmartRequest):
             combined_content[url] = f"[SOURCE: WEB SEARCH RESULT for query: '{search_query}']\n{text}"
 
         if not combined_content:
-            raise HTTPException(status_code=500, detail="Both tracks failed — no content scraped")
+            # Both tracks empty — don't throw a 500. Return a clean NOTFOUND row
+            # so Clay never sees an error. The retry loop treats NOTFOUND as
+            # retryable, so this still gets a second attempt before giving up.
+            logger.warning("[Jina Smart] Both tracks returned no content — returning NOTFOUND")
+            return {
+                "track_a_urls": [],
+                "track_a_content": {},
+                "track_a_picked_subpages": [],
+                "track_b_search_query": search_query,
+                "track_b_search_results": raw_search_results,
+                "track_b_urls": [],
+                "track_b_content": {},
+                "pages_scraped": 0,
+                "total_content_length": 0,
+                "extracted_answer": "NOTFOUND",
+                "total_tokens": 0,
+            }
 
         logger.info(
             f"[Jina Smart] Combined: {len(track_a_result)} direct + "
@@ -925,25 +941,55 @@ async def scrape_jina_test(request: JinaSmartRequest):
             "total_tokens": extract_response.input_tokens + extract_response.output_tokens,
         }
 
-    # Retry policy: retry on ANY scrape failure — never return a "failed to
-    # scrape" error if a rerun could fix it (failures here are almost always
-    # transient: Jina blips, both-tracks-empty, outer timeout).
-    #   - NOTFOUND          → retry — content quality issue, retry might help
-    #   - Timeout (504)     → retry — transient hang
-    #   - "Both tracks…" 500→ retry — transient Jina failure (rerun works)
-    #   - Exception         → retry — usually transient network blips
-    #   - 422 (no prompt)   → DO NOT retry — genuine client error, won't fix
+    # Retry policy: retry on ANY scrape failure, then ALWAYS return a clean 200.
+    # A failed scrape is a RESULT ("NOTFOUND"), not an HTTP error — Clay should
+    # never see a 500/504. Each failure is retried once; if it still fails, we
+    # return {"extracted_answer": "NOTFOUND", "error": <reason>} as a 200.
+    #   - NOTFOUND     → retry, then return NOTFOUND
+    #   - Timeout      → retry, then return NOTFOUND
+    #   - Both tracks  → retry, then return NOTFOUND
+    #   - Exception    → retry, then return NOTFOUND
+    #   - 422 (no prompt) → raise — the ONE real error: can't scrape with no prompt
     # Outer hard cap per attempt: 30s (Track A 18s + Track B 12s run parallel + extract ~8s)
     # Typical success ~20-25s; worst case (full fail, 2 attempts) ~61s.
-    MAX_RETRIES = 2
-    PER_ATTEMPT_TIMEOUT = 30.0
-    RETRY_BACKOFF = 1.0  # seconds between attempts — let transient issues clear
+    # Per-attempt budgets. Attempt 1 is FAST (most rows answer quick). The retry
+    # is GENEROUS — full time budget, like a fresh manual rerun — because by the
+    # time we're retrying, a slow/complete answer beats a fast NOTFOUND.
+    #   (track_a_deadline, track_b_deadline, outer_timeout)
+    ATTEMPT_BUDGETS = [
+        (18.0, 12.0, 35.0),   # attempt 1 — fast path
+        (45.0, 30.0, 85.0),   # attempt 2 (retry) — generous, like a fresh run
+    ]
+    MAX_RETRIES = len(ATTEMPT_BUDGETS)  # 2 full pipeline runs = 1 retry
+    RETRY_BACKOFF = 4.0  # gap before the full re-run — long enough for a rate
+    #                      limit / Jina blip to actually clear (1s was too short)
     last_result: dict | None = None
     last_error: str | None = None
 
+    def _notfound(error: str | None = None) -> dict:
+        """A clean 200 result for any scrape failure — never throw to Clay."""
+        return {
+            "track_a_urls": [],
+            "track_a_content": {},
+            "track_a_picked_subpages": [],
+            "track_b_search_query": "",
+            "track_b_search_results": [],
+            "track_b_urls": [],
+            "track_b_content": {},
+            "pages_scraped": 0,
+            "total_content_length": 0,
+            "extracted_answer": "NOTFOUND",
+            "total_tokens": 0,
+            "error": error,
+        }
+
     for attempt in range(1, MAX_RETRIES + 1):
+        track_a_deadline, track_b_deadline, per_attempt_timeout = ATTEMPT_BUDGETS[attempt - 1]
         try:
-            result = await asyncio.wait_for(_run(), timeout=PER_ATTEMPT_TIMEOUT)
+            result = await asyncio.wait_for(
+                _run(track_a_deadline, track_b_deadline),
+                timeout=per_attempt_timeout,
+            )
             answer = result.get("extracted_answer", "NOTFOUND")
 
             if isinstance(answer, str) and answer.strip().upper() == "NOTFOUND":
@@ -963,15 +1009,17 @@ async def scrape_jina_test(request: JinaSmartRequest):
             return result
 
         except asyncio.TimeoutError:
-            last_error = f"Pipeline timed out after {PER_ATTEMPT_TIMEOUT}s"
-            logger.error(f"[Jina Smart] Outer timeout on attempt {attempt}/{MAX_RETRIES}")
+            last_error = f"Pipeline timed out after {per_attempt_timeout}s"
+            logger.error(f"[Jina Smart] Outer timeout on attempt {attempt}/{MAX_RETRIES} ({per_attempt_timeout}s budget)")
             if attempt < MAX_RETRIES:
                 logger.warning(f"[Jina Smart] Retrying after timeout...")
                 await asyncio.sleep(RETRY_BACKOFF)
                 continue
-            raise HTTPException(status_code=504, detail=last_error)
+            logger.warning(f"[Jina Smart] All attempts timed out — returning NOTFOUND")
+            return _notfound(last_error)
         except HTTPException as he:
-            # 422 = genuine client error (missing prompt_extract) — retrying won't help
+            # 422 = genuine client error (missing prompt_extract) — can't scrape
+            # without a prompt, so this is the ONE case we still surface as an error.
             if he.status_code == 422:
                 raise
             last_error = str(he.detail)
@@ -980,7 +1028,8 @@ async def scrape_jina_test(request: JinaSmartRequest):
                 logger.warning(f"[Jina Smart] Retrying after failure...")
                 await asyncio.sleep(RETRY_BACKOFF)
                 continue
-            raise
+            logger.warning(f"[Jina Smart] All attempts failed — returning NOTFOUND")
+            return _notfound(last_error)
         except Exception as e:
             last_error = str(e)
             logger.error(f"[Jina Smart] Attempt {attempt}/{MAX_RETRIES} failed: {e}")
@@ -988,8 +1037,8 @@ async def scrape_jina_test(request: JinaSmartRequest):
                 logger.warning(f"[Jina Smart] Retrying after exception...")
                 await asyncio.sleep(RETRY_BACKOFF)
                 continue
-            raise HTTPException(status_code=500, detail=last_error or str(e))
-            continue
+            logger.warning(f"[Jina Smart] All attempts crashed — returning NOTFOUND")
+            return _notfound(last_error or str(e))
 
     # Should never reach here, but satisfy type checker
     if last_result is not None:
