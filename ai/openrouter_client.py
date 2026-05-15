@@ -114,7 +114,9 @@ class OpenRouterClient(AIClient):
         
         combined_content = "\n".join(content_parts)
         
-        max_chars = 100000 if "gpt" in self.model.lower() else 150000
+        # gpt-4o-mini supports 128k tokens (~500k chars). Old 100k cap was throwing
+        # away Track B + subpage content. Bump to give the LLM full evidence.
+        max_chars = 180000 if "gpt" in self.model.lower() else 200000
         if len(combined_content) > max_chars:
             logger.warning(f"Content too long ({len(combined_content)} chars), truncating to {max_chars}")
             combined_content = combined_content[:max_chars] + "\n... [truncated]"

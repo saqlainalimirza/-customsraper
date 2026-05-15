@@ -792,7 +792,7 @@ async def scrape_jina_test(request: JinaSmartRequest):
                     links=links,
                     prompt_extract=prompt_extract,
                     homepage_url=homepage_url,
-                    max_links=2,
+                    max_links=4,
                 )
                 try:
                     picked_urls = json.loads(pick_response.content).get("urls", []) or []
@@ -842,12 +842,29 @@ async def scrape_jina_test(request: JinaSmartRequest):
                 ]
                 logger.info(f"[Jina Smart][Track B] {len(raw_search_results)} search results: {[r['url'] for r in raw_search_results]}")
 
-                # Pass search results directly to LLM — no re-scraping
-                content_map = {
+                # Actually SCRAPE the top 2 search results — passing only snippets
+                # to the LLM was the #1 cause of false NOTFOUND. Snippet ≠ page.
+                top_urls = [r["url"] for r in search_results[:2] if r.get("url")]
+                snippet_lookup = {
                     r["url"]: f"[Title]: {r.get('title', '')}\n[Snippet]: {r.get('content', '')}"
-                    for r in search_results
-                    if r.get("url")
+                    for r in search_results if r.get("url")
                 }
+                content_map: dict[str, str] = {}
+                if top_urls:
+                    scrape_tasks = [jina.scrape_url(u) for u in top_urls]
+                    scrape_results = await asyncio.gather(*scrape_tasks, return_exceptions=True)
+                    for url, res in zip(top_urls, scrape_results):
+                        if isinstance(res, Exception):
+                            logger.warning(f"[Jina Smart][Track B] Scrape failed for {url}: {res} — falling back to snippet")
+                            content_map[url] = snippet_lookup.get(url, "")
+                        else:
+                            content_map[url] = res
+                            logger.info(f"[Jina Smart][Track B] Scraped {len(res)} chars from {url}")
+                # Remaining results (3rd, 4th, 5th) keep snippet-only — better than nothing
+                for r in search_results[2:]:
+                    url = r.get("url")
+                    if url and url not in content_map:
+                        content_map[url] = snippet_lookup.get(url, "")
                 return search_query, raw_search_results, content_map
 
             except Exception as e:
@@ -877,6 +894,41 @@ async def scrape_jina_test(request: JinaSmartRequest):
             _track_a_with_timeout(),
             _track_b_with_timeout(),
         )
+
+        # ── CROSS-POLLINATION: salvage same-domain URLs from search ─────────
+        # Track A picks subpages from homepage links — but if the homepage
+        # doesn't link to /shop or /products, those pages get missed. Google
+        # (via Track B's search) usually DOES find them. If a search result is
+        # on the company's own domain and Track A missed it, scrape it now.
+        # This is the single biggest fix for "homepage info only" NOTFOUND rows.
+        if website_url and raw_search_results:
+            try:
+                normalized = jina._normalize_url(website_url)
+                company_host = urlparse(normalized).netloc.lower().lstrip("www.")
+                already_have = set(track_a_result.keys())
+                salvage_urls: list[str] = []
+                for r in raw_search_results:
+                    u = r.get("url")
+                    if not u:
+                        continue
+                    host = urlparse(u).netloc.lower().lstrip("www.")
+                    if host == company_host and u not in already_have and u not in salvage_urls:
+                        salvage_urls.append(u)
+                salvage_urls = salvage_urls[:3]
+                if salvage_urls:
+                    logger.info(f"[Jina Smart] Cross-poll: scraping {len(salvage_urls)} same-domain URLs from search: {salvage_urls}")
+                    salvage_tasks = [jina.scrape_url(u) for u in salvage_urls]
+                    salvage_results = await asyncio.gather(*salvage_tasks, return_exceptions=True)
+                    for u, res in zip(salvage_urls, salvage_results):
+                        if isinstance(res, Exception):
+                            logger.warning(f"[Jina Smart] Cross-poll scrape failed for {u}: {res}")
+                            continue
+                        track_a_result[u] = res
+                        track_a_picked_urls.append(u)
+                        logger.info(f"[Jina Smart] Cross-poll: +{len(res)} chars from {u}")
+            except Exception as e:
+                logger.warning(f"[Jina Smart] Cross-pollination step failed (non-fatal): {e}")
+
 
         combined_content: dict[str, str] = {}
         # Label Track A content so AI knows this is the actual company website.
