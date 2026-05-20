@@ -97,6 +97,9 @@ def _build_agent():
         model=settings.gemini_model,
         google_api_key=settings.gemini_api_key,
         temperature=0.2,
+        # LOW thinking — faster, cheaper, fewer thinking-tokens. Gemini 3 uses
+        # thinking_level; passed through generation config.
+        model_kwargs={"generation_config": {"thinking_config": {"thinking_level": "low"}}},
     )
     return create_react_agent(llm, tools=[read_url, search_web])
 

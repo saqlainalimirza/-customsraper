@@ -44,6 +44,10 @@ class OpenRouterClient(AIClient):
             self.model = self.settings.claude_model if model_type == "claude" else self.settings.gpt_model
 
         self.model_type = model_type
+        # Gemini: run with LOW thinking — faster + far fewer thinking-tokens (TPM).
+        # Passed via extra_body so it goes straight into the request body that
+        # Google's OpenAI-compat endpoint reads.
+        self.extra_body = {"reasoning_effort": "low"} if model_type == "gemini" else None
 
     async def filter_urls(
         self,
@@ -71,6 +75,7 @@ class OpenRouterClient(AIClient):
                 "HTTP-Referer": "https://scaletopia.com",
                 "X-Title": "Scaletopia Web Scraper",
             },
+            extra_body=self.extra_body,
         )
         
         content = response.choices[0].message.content or "[]"
@@ -150,6 +155,8 @@ class OpenRouterClient(AIClient):
         }
         if self.model_type != "gemini":
             create_kwargs["max_tokens"] = 8000
+        if self.extra_body:
+            create_kwargs["extra_body"] = self.extra_body
 
         response = await self.client.chat.completions.create(**create_kwargs)
         
@@ -199,6 +206,7 @@ class OpenRouterClient(AIClient):
                 "HTTP-Referer": "https://scaletopia.com",
                 "X-Title": "Scaletopia Web Scraper",
             },
+            extra_body=self.extra_body,
         )
 
         raw = (response.choices[0].message.content or "").strip()
@@ -270,6 +278,7 @@ class OpenRouterClient(AIClient):
                 "HTTP-Referer": "https://scaletopia.com",
                 "X-Title": "Scaletopia Web Scraper",
             },
+            extra_body=self.extra_body,
         )
 
         raw = response.choices[0].message.content or '{"urls": []}'
