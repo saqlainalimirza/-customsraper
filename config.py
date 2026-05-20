@@ -11,12 +11,16 @@ class Settings(BaseSettings):
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
     scrapingbee_api_key: str = ""
     jina_api_key: str = ""
-    
+
+    # Direct Google Gemini API key (AI Studio). Add GEMINI_API_KEY to .env.
+    gemini_api_key: str = ""
+    gemini_base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai/"
+
     gpt_model: str = "openai/gpt-4o-mini"
     claude_model: str = "anthropic/claude-3.5-sonnet"
-    gemini_model: str = "google/gemini-2.5-flash-preview"
-    
-    default_ai_provider: str = "gpt"
+    gemini_model: str = "gemini-2.5-flash"  # direct Google ID — NOT 1.5, NOT preview
+
+    default_ai_provider: str = "gemini"
     max_urls_per_domain: int = 500
     request_delay_min: float = 1.0
     request_delay_max: float = 3.0

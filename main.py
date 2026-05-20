@@ -1,4 +1,5 @@
 import json
+import re
 import asyncio
 from contextlib import asynccontextmanager
 from typing import Any, Literal
@@ -107,7 +108,9 @@ class DirectScrapeRequest(BaseModel):
 
 
 class JinaSmartRequest(BaseModel):
-    data: dict[str, str] | None = None
+    # dict[str, Any] (not str) so Clay can send nulls / numbers / blanks for a
+    # field without a 422. We coerce + drop empties in normalize().
+    data: dict[str, Any] | None = None
     url: str | None = None  # Top-level fallback for Clay integration
     website: str | None = None  # Top-level fallback
     prompt_extract: str | None = None
@@ -115,13 +118,28 @@ class JinaSmartRequest(BaseModel):
     ai_provider: Literal["gpt", "claude", "gemini"] = "gemini"
 
     def normalize(self) -> "JinaSmartRequest":
-        """Merge top-level fields into data dict."""
-        if self.data is None:
-            self.data = {}
-        if self.url and "url" not in self.data:
-            self.data["url"] = self.url
-        if self.website and "website" not in self.data:
-            self.data["website"] = self.website
+        """
+        Merge top-level fields into data, then clean the data dict:
+          - coerce every value to a trimmed string
+          - DROP keys whose value is missing/null/empty/"null"/"undefined"
+        So Clay can send a field name with no value and we just ignore it
+        instead of breaking or feeding garbage to the AI.
+        """
+        raw = self.data or {}
+        if self.url and "url" not in raw:
+            raw["url"] = self.url
+        if self.website and "website" not in raw:
+            raw["website"] = self.website
+
+        cleaned: dict[str, str] = {}
+        for k, v in raw.items():
+            if v is None:
+                continue
+            s = str(v).strip()
+            if not s or s.lower() in ("null", "undefined", "none", "nan", "n/a"):
+                continue
+            cleaned[k] = s
+        self.data = cleaned
         return self
 
 
@@ -752,12 +770,28 @@ async def scrape_jina_test(request: JinaSmartRequest):
         PROMPT_KEYS = {"prompt_extract", "prompt_filter"}
         clean_data = {k: v for k, v in request.data.items() if k not in PROMPT_KEYS}
 
-        website_url = (
-            clean_data.get("website")
-            or clean_data.get("url")
-            or clean_data.get("domain")
-            or ""
-        ).strip()
+        # Robust website detection: Clay maps the URL to all sorts of column
+        # names. Check the common ones first, then fall back to ANY value that
+        # looks like a URL/domain so a non-standard field name still works.
+        WEBSITE_KEYS = (
+            "website", "url", "domain", "website_url", "site", "homepage",
+            "company_website", "web", "company_url", "company_domain",
+        )
+        website_url = ""
+        for key in WEBSITE_KEYS:
+            if clean_data.get(key):
+                website_url = clean_data[key].strip()
+                break
+        if not website_url:
+            # Fallback: scan every value for something domain-shaped
+            for v in clean_data.values():
+                s = str(v).strip()
+                if s.startswith(("http://", "https://")) or re.match(r"^[\w.-]+\.[a-z]{2,}(/|$)", s, re.I):
+                    if "linkedin.com" in s.lower():
+                        continue  # skip the LinkedIn URL — not the company site
+                    website_url = s
+                    logger.info(f"[Jina Smart] Auto-detected website from unlabeled field: {s}")
+                    break
 
         # ── TRACK A: Direct website scrape + 1-hop agentic link discovery ────
         # Goal: extraction goals like "case studies" live on subpages with
@@ -821,26 +855,43 @@ async def scrape_jina_test(request: JinaSmartRequest):
         async def run_track_b() -> tuple[str, list[dict], dict[str, str]]:
             try:
                 query_response = await ai_client.generate_search_query(clean_data, prompt_extract)
-                search_query = query_response.content.strip()
-                logger.info(f"[Jina Smart][Track B] Search query: '{search_query}'")
-                if not search_query:
+                try:
+                    queries = json.loads(query_response.content)
+                    if not isinstance(queries, list):
+                        queries = [str(queries)]
+                except (json.JSONDecodeError, TypeError):
+                    queries = [query_response.content.strip()]
+                queries = [q.strip() for q in queries if q and q.strip()][:3]
+                search_query = " | ".join(queries)  # for logging/response display
+                logger.info(f"[Jina Smart][Track B] {len(queries)} search queries: {queries}")
+                if not queries:
                     return "", [], {}
 
-                try:
-                    search_results = await jina.search(search_query)
-                except Exception as search_err:
-                    logger.warning(f"[Jina Smart][Track B] Search failed (continuing with Track A only): {search_err}")
-                    return search_query, [], {}
+                # Run all queries in parallel, then merge + dedupe results by URL
+                search_tasks = [jina.search(q) for q in queries]
+                per_query = await asyncio.gather(*search_tasks, return_exceptions=True)
+                merged: list[dict] = []
+                seen_urls: set[str] = set()
+                for q, res in zip(queries, per_query):
+                    if isinstance(res, Exception):
+                        logger.warning(f"[Jina Smart][Track B] Search failed for '{q}': {res}")
+                        continue
+                    for item in res:
+                        u = item.get("url")
+                        if u and u not in seen_urls:
+                            seen_urls.add(u)
+                            merged.append(item)
+                search_results = merged
 
                 if not search_results:
-                    logger.warning(f"[Jina Smart][Track B] No results for: '{search_query}'")
+                    logger.warning(f"[Jina Smart][Track B] No results for any of: {queries}")
                     return search_query, [], {}
 
                 raw_search_results = [
                     {"url": r["url"], "title": r.get("title", ""), "snippet": r.get("content", "")}
                     for r in search_results
                 ]
-                logger.info(f"[Jina Smart][Track B] {len(raw_search_results)} search results: {[r['url'] for r in raw_search_results]}")
+                logger.info(f"[Jina Smart][Track B] {len(raw_search_results)} merged results: {[r['url'] for r in raw_search_results]}")
 
                 # Actually SCRAPE the top 2 search results — passing only snippets
                 # to the LLM was the #1 cause of false NOTFOUND. Snippet ≠ page.

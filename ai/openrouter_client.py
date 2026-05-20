@@ -19,22 +19,30 @@ logger = setup_logger(__name__)
 
 
 class OpenRouterClient(AIClient):
-    """OpenRouter client that supports both GPT and Claude models."""
-    
+    """
+    OpenAI-compatible client.
+      - gpt / claude  → OpenRouter
+      - gemini        → Google's native Gemini API (OpenAI-compatible endpoint)
+                        using the direct GEMINI_API_KEY
+    """
+
     def __init__(self, model_type: str = "gpt"):
         self.settings = get_settings()
-        self.client = AsyncOpenAI(
-            api_key=self.settings.openrouter_api_key,
-            base_url=self.settings.openrouter_base_url,
-        )
-        
-        if model_type == "claude":
-            self.model = self.settings.claude_model
-        elif model_type == "gemini":
+
+        if model_type == "gemini":
+            # Direct Google Gemini — NOT via OpenRouter. Uses GEMINI_API_KEY.
+            self.client = AsyncOpenAI(
+                api_key=self.settings.gemini_api_key,
+                base_url=self.settings.gemini_base_url,
+            )
             self.model = self.settings.gemini_model
         else:
-            self.model = self.settings.gpt_model
-        
+            self.client = AsyncOpenAI(
+                api_key=self.settings.openrouter_api_key,
+                base_url=self.settings.openrouter_base_url,
+            )
+            self.model = self.settings.claude_model if model_type == "claude" else self.settings.gpt_model
+
         self.model_type = model_type
 
     async def filter_urls(
@@ -133,6 +141,9 @@ class OpenRouterClient(AIClient):
                 {"role": "user", "content": user_message},
             ],
             temperature=0.2,
+            # Big extraction prompts (e.g. all_products with dozens of items)
+            # were getting cut off mid-JSON → unparseable. Give plenty of room.
+            max_tokens=8000,
             extra_headers={
                 "HTTP-Referer": "https://scaletopia.com",
                 "X-Title": "Scaletopia Web Scraper",
@@ -164,7 +175,10 @@ class OpenRouterClient(AIClient):
         data: dict[str, str],
         prompt_extract: str,
     ) -> AIResponse:
-        """Generate a web search query from input data + extraction goal."""
+        """
+        Generate 2-3 natural human web search queries from input data + goal.
+        Returns AIResponse whose content is a JSON array of query strings.
+        """
         data_block = "\n".join(f"{k}: {v}" for k, v in data.items())
         user_message = GENERATE_SEARCH_QUERY_USER_PROMPT.format(
             data_block=data_block,
@@ -177,16 +191,28 @@ class OpenRouterClient(AIClient):
                 {"role": "system", "content": GENERATE_SEARCH_QUERY_SYSTEM_PROMPT},
                 {"role": "user", "content": user_message},
             ],
-            temperature=0.2,
+            temperature=0.3,
             extra_headers={
                 "HTTP-Referer": "https://scaletopia.com",
                 "X-Title": "Scaletopia Web Scraper",
             },
         )
 
-        content = (response.choices[0].message.content or "").strip().strip('"')
+        raw = (response.choices[0].message.content or "").strip()
         input_tokens = response.usage.prompt_tokens if response.usage else 0
         output_tokens = response.usage.completion_tokens if response.usage else 0
+
+        # Parse one-query-per-line → clean list. Strip numbering/bullets/quotes.
+        import re as _re
+        queries: list[str] = []
+        for line in raw.splitlines():
+            q = line.strip().strip('"').strip("'")
+            q = _re.sub(r"^\s*(?:\d+[\.\)]|[-*•])\s*", "", q).strip()  # drop "1." / "- " / "* "
+            # drop any leftover operators a model might sneak in
+            q = q.replace('"', "").replace("site:", "").strip()
+            if q and len(q) > 2 and q not in queries:
+                queries.append(q)
+        queries = queries[:3] or ([raw] if raw else [])
 
         log_tokens(
             logger,
@@ -196,9 +222,9 @@ class OpenRouterClient(AIClient):
             output_tokens=output_tokens,
         )
 
-        logger.info(f"[AI] Generated search query: '{content}'")
+        logger.info(f"[AI] Generated {len(queries)} search queries: {queries}")
         return AIResponse(
-            content=content,
+            content=json.dumps(queries),
             input_tokens=input_tokens,
             output_tokens=output_tokens,
             model=self.model,

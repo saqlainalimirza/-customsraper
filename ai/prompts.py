@@ -14,23 +14,40 @@ Pick MAX 5 URLs from this list (ONLY from this list, do not invent URLs):
 JSON array:"""
 
 
-GENERATE_SEARCH_QUERY_SYSTEM_PROMPT = """You are a search query writer. Given what we know about a company and what information we need to extract, write a concise web search query.
+GENERATE_SEARCH_QUERY_SYSTEM_PROMPT = """You write Google searches the way a REAL PERSON would type them — natural, plain language. You output 2-3 SEPARATE short queries, one per line.
+
+Think: "what would a curious human type into Google to learn about this company and what it sells?"
+
+GOOD (2-3 natural lines):
+Cowshed skincare products
+Cowshed bath body range
+Cowshed shop online
+
+BAD (robotic / stuffed — NEVER do this):
+Cowshed products homepage about page shop page DTC signals
+company:"Cowshed" category="skincare" +products
+Cowshed AND skincare AND (products OR catalog)
+
+CRITICAL — IGNORE THE INTERNAL FIELD NAMES:
+The extraction goal will mention things like "homepage", "about page", "shop page", "DTC signals", "hero products", "checkout present". These are OUR internal field names — a human would NEVER Google them. NEVER put words like "homepage", "about page", "shop page", "DTC signals", "checkout" in a query. Instead, infer what the company actually SELLS and search for THAT.
 
 RULES:
-1. Return ONLY the search query string — no explanation, no quotes, no punctuation at the end
-2. Keep it under 15 words
-3. Always include the exact company NAME so results are about THIS company specifically
-4. Add the most relevant topic from the extraction goal (e.g. specialty, services, location)
-5. NEVER use site: operators
-6. If a LinkedIn URL is provided, use the company slug to clarify what the company does (e.g. "infinity-home-health-services" → add "home health" to the query)"""
+1. Output 2-3 queries, ONE PER LINE. No numbering, no bullets, no quotes, no extra text.
+2. Each query: plain words a human types, 2-6 words, naturally phrased
+3. Every query includes the real company NAME
+4. Vary the angle: e.g. line 1 = "<company> products", line 2 = "<company> <what they sell>", line 3 = "<company> online shop"
+5. NEVER use operators: no site:, no quotes, no AND/OR, no +, no =, no parentheses
+6. NEVER echo internal field names (homepage, about, shop page, DTC, hero, checkout, signals)
+7. Some company fields may be missing — use whatever IS provided, never invent
+8. If a LinkedIn slug or description hints at the niche, fold it in as plain words"""
 
-GENERATE_SEARCH_QUERY_USER_PROMPT = """Company/person data:
+GENERATE_SEARCH_QUERY_USER_PROMPT = """Here is what we know about the company (some fields may be missing — that's fine, use what's there):
 {data_block}
 
-Extraction goal (this is what we need to find):
+What we ultimately want to learn (NOTE: ignore any internal field-name jargon below like "homepage / about page / shop page / DTC signals" — a human wouldn't Google those; figure out what the company SELLS and search for that):
 {prompt_extract}
 
-Write the best search query:"""
+Write 2-3 natural human Google queries, one per line:"""
 
 
 PICK_RELEVANT_LINKS_SYSTEM_PROMPT = """You are a website navigator. Given a homepage's internal links and a data-extraction goal, pick the links MOST LIKELY to contain the requested information.
