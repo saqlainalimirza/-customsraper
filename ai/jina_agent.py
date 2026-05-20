@@ -15,6 +15,7 @@ endpoint, so a single row can never run away.
 """
 import json
 import asyncio
+import itertools
 
 from langchain_core.tools import tool
 from langchain_core.messages import SystemMessage, HumanMessage
@@ -130,34 +131,70 @@ OUTPUT RULES:
 - NEVER end your turn without the JSON. Always answer."""
 
 
-def _build_llm(provider: str = "gemini"):
-    """
-    Pick the agent LLM by provider (passed in the API request):
-      - "grok"  → Grok 4.1 Fast via OpenRouter (built for agentic tool calls)
-      - else    → Gemini 3 Flash, native Google API
-    Both run with NO retries (the agent endpoint deliberately avoids the retry path).
-    """
-    settings = get_settings()
+# ── Model registry ──────────────────────────────────────────────────────────
+# canonical key → (route, openrouter_slug). route "native" = direct Google API.
+_OR, _NATIVE = "openrouter", "native"
+_MODELS = {
+    "gemini":           (_NATIVE, None),                          # Gemini 3 Flash, native (settings.gemini_model)
+    "gemini-flash":     (_OR, "google/gemini-3-flash-preview"),
+    "gemini-flashlite": (_OR, "google/gemini-3.1-flash-lite"),
+    "grok":             (_OR, "x-ai/grok-4.3"),
+}
 
-    if provider == "grok":
+# Friendly short-forms the user can type in ai_provider → canonical key.
+_ALIASES = {
+    "gemini": "gemini", "gemini3": "gemini", "gemini-3": "gemini", "default": "gemini", "native": "gemini",
+    "flash": "gemini-flash", "geminiflash": "gemini-flash", "gemini-flash": "gemini-flash",
+    "gemini-3-flash": "gemini-flash",
+    "flashlite": "gemini-flashlite", "flash-lite": "gemini-flashlite", "lite": "gemini-flashlite",
+    "geminiflashlite": "gemini-flashlite", "gemini-flash-lite": "gemini-flashlite",
+    "gemini-flashlite": "gemini-flashlite", "gemini-3.1-flash-lite": "gemini-flashlite",
+    "grok": "grok", "grok4": "grok", "grok-4": "grok", "grok-4.3": "grok", "grok43": "grok",
+}
+
+# "mix"/"openrouter" → round-robin across these (spreads LLM load so no single
+# model 429s). Jina stays protected by its own semaphores regardless.
+_MIX_POOL = ["gemini-flash", "gemini-flashlite", "grok"]
+_mix_cycle = itertools.cycle(_MIX_POOL)
+
+
+def _resolve_provider(provider: str) -> str:
+    """Map a user-typed provider/alias to a canonical model key.
+    'mix'/'openrouter'/'auto' → round-robin pick from the mix pool."""
+    p = (provider or "").strip().lower().replace("_", "-").replace(" ", "-")
+    if p in ("mix", "openrouter", "or", "auto", "balance"):
+        return next(_mix_cycle)
+    return _ALIASES.get(p, "gemini")  # unknown → safe default
+
+
+def _build_llm(provider: str = "gemini"):
+    """Build the agent LLM for a (resolved) provider. NO retries on any path."""
+    settings = get_settings()
+    key = _resolve_provider(provider)
+    route, slug = _MODELS[key]
+
+    if route == _OR:
         from langchain_openai import ChatOpenAI
+        extra = {}
+        if key == "grok":  # Grok 4.3: reasoning off → fast/cheap
+            extra["model_kwargs"] = {"extra_body": {"reasoning": {"enabled": False}}}
+        logger.info(f"[Jina Agent] LLM → {slug} (via OpenRouter)")
         return ChatOpenAI(
-            model=settings.grok_model,
+            model=slug,
             api_key=settings.openrouter_api_key,
             base_url=settings.openrouter_base_url,
             temperature=0.2,
             max_retries=0,
-            # Grok 4.3: disable reasoning → fast/cheap mode for bulk extraction
-            model_kwargs={"extra_body": {"reasoning": {"enabled": False}}},
+            **extra,
         )
 
-    # default: Gemini 3 Flash, native
+    # native Gemini 3 Flash
+    logger.info(f"[Jina Agent] LLM → {settings.gemini_model} (native Google)")
     return ChatGoogleGenerativeAI(
         model=settings.gemini_model,
         google_api_key=settings.gemini_api_key,
         temperature=0.2,
         max_retries=0,
-        # LOW thinking — faster, cheaper, fewer thinking-tokens.
         model_kwargs={"generation_config": {"thinking_config": {"thinking_level": "low"}}},
     )
 

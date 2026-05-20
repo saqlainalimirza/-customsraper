@@ -120,7 +120,9 @@ class JinaSmartRequest(BaseModel):
     website: str | None = None  # Top-level fallback
     prompt_extract: str | None = None
     prompt_filter: str | None = None
-    ai_provider: Literal["gpt", "claude", "gemini", "grok"] = "gemini"
+    # Free-form so the agent can accept aliases ("flashlite", "grok", "mix", ...).
+    # Pipeline endpoint only understands gpt/claude/gemini (falls back to gemini).
+    ai_provider: str = "gemini"
 
     def normalize(self) -> "JinaSmartRequest":
         """
@@ -162,10 +164,12 @@ class DirectScrapeResponse(BaseModel):
 
 
 def get_ai_client(provider: str) -> AIClient:
-    if provider in ("gpt", "claude", "gemini"):
-        return OpenRouterClient(model_type=provider)
-    else:
-        raise ValueError(f"Unknown AI provider: {provider}. Use 'gpt', 'claude', or 'gemini'")
+    # ai_provider is free-form now (agent supports aliases/mix). The pipeline
+    # only knows gpt/claude/gemini — anything else falls back to gemini.
+    p = (provider or "").strip().lower()
+    if p in ("gpt", "claude", "gemini"):
+        return OpenRouterClient(model_type=p)
+    return OpenRouterClient(model_type="gemini")
 
 
 def extract_domain(domain_or_url: str) -> str:
@@ -1198,8 +1202,8 @@ async def scrape_jina_agent(request: JinaSmartRequest):
     if website_url and not website_url.startswith(("http://", "https://")):
         website_url = f"https://{website_url}"
 
-    # Provider routing: "grok" → Grok 4.1 Fast (OpenRouter), else Gemini 3 Flash
-    provider = "grok" if request.ai_provider == "grok" else "gemini"
+    # Provider is resolved inside the agent (aliases, "mix" round-robin, etc.)
+    provider = request.ai_provider or "gemini"
     logger.info(f"[Jina Agent] Starting agent (provider={provider}) keys={list(clean_data.keys())} website={website_url}")
 
     from ai.jina_agent import run_jina_agent
