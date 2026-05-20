@@ -147,7 +147,7 @@ def _build_llm(provider: str = "gemini"):
             base_url=settings.openrouter_base_url,
             temperature=0.2,
             max_retries=0,
-            # Grok 4.1 Fast: disable reasoning for speed/cost on bulk extraction
+            # Grok 4.3: disable reasoning → fast/cheap mode for bulk extraction
             model_kwargs={"extra_body": {"reasoning": {"enabled": False}}},
         )
 
