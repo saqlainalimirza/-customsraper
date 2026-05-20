@@ -8,3 +8,6 @@ pydantic-settings
 httpx
 beautifulsoup4
 lxml
+langgraph
+langchain-core
+langchain-google-genai

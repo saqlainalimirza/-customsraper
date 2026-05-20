@@ -1,6 +1,7 @@
 import re
+import asyncio
 import httpx
-from urllib.parse import urlparse, urljoin, quote
+from urllib.parse import urlparse, urljoin, quote, parse_qsl, urlencode, urlunparse
 
 from config import get_settings
 from utils.logging import setup_logger, log_request
@@ -9,6 +10,34 @@ logger = setup_logger(__name__)
 
 JINA_READER_BASE = "https://r.jina.ai/"
 JINA_SEARCH_BASE = "https://s.jina.ai/"
+
+# Global throttles shared across ALL JinaScraper instances (every row makes its
+# own instance, so these MUST live at module level). With 30 parallel rows ×
+# multiple calls each, bursting all at once is what triggered 120× HTTP 429 on
+# s.jina.ai. Capping concurrency spaces the calls so they stop tripping limits.
+_SEARCH_SEMAPHORE = asyncio.Semaphore(5)   # s.jina.ai — strict, low RPM
+_READER_SEMAPHORE = asyncio.Semaphore(20)  # r.jina.ai — higher RPM, looser cap
+
+# Tracking params that create duplicate URLs (same page, different tag) — Google
+# Shopping's srsltid is the big one in the logs; strip so we don't scrape a page
+# 2-3× and waste Reader RPM.
+_TRACKING_PARAMS = {
+    "srsltid", "gclid", "fbclid", "msclkid", "dclid", "gclsrc", "_ga",
+    "mc_cid", "mc_eid", "ref", "ref_src",
+}
+
+
+def strip_tracking_params(url: str) -> str:
+    """Remove tracking query params (srsltid, utm_*, gclid, ...) for dedup/scrape."""
+    try:
+        parsed = urlparse(url)
+        kept = [
+            (k, v) for k, v in parse_qsl(parsed.query, keep_blank_values=True)
+            if k.lower() not in _TRACKING_PARAMS and not k.lower().startswith("utm_")
+        ]
+        return urlunparse(parsed._replace(query=urlencode(kept)))
+    except Exception:
+        return url
 
 
 class JinaScraper:
@@ -49,21 +78,23 @@ class JinaScraper:
         If keep_links=True, returns markdown with [text](url) links intact.
         Raises ValueError if content is insufficient.
         """
+        url = strip_tracking_params(url)  # avoid scraping the same page under srsltid variants
         jina_url = f"{JINA_READER_BASE}{url}"
 
-        async with httpx.AsyncClient(timeout=12.0, follow_redirects=True) as client:
-            log_request(logger, "GET", jina_url, extra={"provider": "jina"})
-            response = await client.get(jina_url, headers=self._build_headers(keep_links=keep_links))
-            response.raise_for_status()
+        async with _READER_SEMAPHORE:
+            async with httpx.AsyncClient(timeout=12.0, follow_redirects=True) as client:
+                log_request(logger, "GET", jina_url, extra={"provider": "jina"})
+                response = await client.get(jina_url, headers=self._build_headers(keep_links=keep_links))
+                response.raise_for_status()
 
-            content = response.text.strip()
-            if not content or len(content) < 100:
-                raise ValueError(
-                    f"Jina returned insufficient content for {url}: {len(content)} chars"
-                )
+                content = response.text.strip()
+                if not content or len(content) < 100:
+                    raise ValueError(
+                        f"Jina returned insufficient content for {url}: {len(content)} chars"
+                    )
 
-            logger.info(f"[Jina] Scraped {len(content)} chars from {url} (keep_links={keep_links})")
-            return content[:20000]
+                logger.info(f"[Jina] Scraped {len(content)} chars from {url} (keep_links={keep_links})")
+                return content[:20000]
 
     async def scrape_main_page(self, domain_or_url: str, keep_links: bool = False) -> tuple[str, str]:
         """
@@ -152,7 +183,8 @@ class JinaScraper:
         if self.settings.jina_api_key:
             headers["Authorization"] = f"Bearer {self.settings.jina_api_key}"
 
-        async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+        async with _SEARCH_SEMAPHORE:
+          async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
             log_request(logger, "GET", search_url, extra={"provider": "jina-search"})
             response = await client.get(search_url, headers=headers)
             response.raise_for_status()

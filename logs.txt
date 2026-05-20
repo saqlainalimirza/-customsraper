@@ -1,0 +1,1001 @@
+2026-05-20T16:24:31.103947467Z [inf]  2026-05-20 16:24:31 | INFO     | main | [Jina Smart] Starting pipeline with data keys: ['name', 'website', 'linkedin']
+2026-05-20T16:24:31.128310703Z [inf]  2026-05-20 16:24:31 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://vibranthealth.com | provider=jina
+2026-05-20T16:24:31.150364978Z [inf]  2026-05-20 16:24:31 | WARNING  | scraper.jina_scraper | [Jina] Failed for https://www.sabra.com: 
+2026-05-20T16:24:31.150370849Z [inf]  2026-05-20 16:24:31 | WARNING  | main | [Jina Smart][Track A] Homepage fetch failed for https://sabra.com: Jina Reader failed to scrape https://sabra.com: 
+2026-05-20T16:24:31.151283291Z [inf]  2026-05-20 16:24:31 | INFO     | main | [Jina Smart] Cross-poll: scraping 3 same-domain URLs from search: ['https://www.sabra.com/products', 'https://www.sabra.com/', 'https://www.sabra.com/where-to-buy']
+2026-05-20T16:24:31.162640033Z [inf]  2026-05-20 16:24:31 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://www.sabra.com/products | provider=jina
+2026-05-20T16:24:31.168348355Z [inf]  2026-05-20 16:24:31 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://www.sabra.com/ | provider=jina
+2026-05-20T16:24:31.173809352Z [inf]  2026-05-20 16:24:31 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://www.sabra.com/where-to-buy | provider=jina
+2026-05-20T16:24:31.179443391Z [inf]  2026-05-20 16:24:31 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Hug Sleep products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Hug%20Sleep%20products'
+2026-05-20T16:24:31.179449731Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:31.179457366Z [inf]  2026-05-20 16:24:31 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Hug Sleep sleepwear': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Hug%20Sleep%20sleepwear'
+2026-05-20T16:24:31.179463540Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:31.179469325Z [inf]  2026-05-20 16:24:31 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Hug Sleep online shop': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Hug%20Sleep%20online%20shop'
+2026-05-20T16:24:31.179475660Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:31.179481882Z [inf]  2026-05-20 16:24:31 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['Hug Sleep products', 'Hug Sleep sleepwear', 'Hug Sleep online shop']
+2026-05-20T16:24:31.186437541Z [inf]  2026-05-20 16:24:31 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=pick_relevant_links | model=gemini-2.5-flash | input=1381 | output=47 | total=1428
+2026-05-20T16:24:31.186445403Z [inf]  2026-05-20 16:24:31 | INFO     | ai.openrouter_client | [AI] Picked 2 relevant link(s) from 36: ['https://wearwellow.com/collections/shop', 'https://wearwellow.com/pages/about']
+2026-05-20T16:24:31.193514314Z [inf]  2026-05-20 16:24:31 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://wearwellow.com/collections/shop | provider=jina
+2026-05-20T16:24:31.204945740Z [inf]  2026-05-20 16:24:31 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://wearwellow.com/pages/about | provider=jina
+2026-05-20T16:24:31.302032478Z [inf]  2026-05-20 16:24:31 | INFO     | scraper.jina_scraper | [Jina] Scraped 8004 chars from https://reliefband.com/products/reliefband-classic?srsltid=AfmBOopKEtdI3QLUUyizCWdMFahOTHAxoWu1kyl51zjZ5n18J-6rYnoy (keep_links=False)
+2026-05-20T16:24:31.334743843Z [inf]  2026-05-20 16:24:31 | INFO     | main | [Jina Smart] Cross-poll: +6077 chars from https://www.renewlife.com/?srsltid=AfmBOop_ARD_YN_7xeT7OTEM3yEvgApriu6lWphfVJZc7-U9ifOSPpor
+2026-05-20T16:24:31.334751647Z [inf]  2026-05-20 16:24:31 | WARNING  | main | [Jina Smart] Cross-poll scrape failed for https://www.renewlife.com/?srsltid=AfmBOorTG_MryCtFANWAlK1_pRSuBxXEkgWQ8Rhii4qV3CfwMFkfZS8s: 
+2026-05-20T16:24:31.334758077Z [inf]  2026-05-20 16:24:31 | INFO     | main | [Jina Smart] Cross-poll: +6593 chars from https://www.renewlife.com/?srsltid=AfmBOopqMiUmJj-H7iQIkV3zcTqRtN1oWerCy6h6NPWM8R5SfwyILHQV
+2026-05-20T16:24:31.334764436Z [inf]  2026-05-20 16:24:31 | INFO     | main | [Jina Smart] Combined: 5 direct + 13 search = 16 pages
+2026-05-20T16:24:31.334770830Z [inf]  2026-05-20 16:24:31 | INFO     | ai.openrouter_client | Extracting answer from 16 pages with OpenRouter (gemini-2.5-flash)
+2026-05-20T16:24:31.368049476Z [inf]  2026-05-20 16:24:31 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=pick_relevant_links | model=gemini-2.5-flash | input=818 | output=61 | total=879
+2026-05-20T16:24:31.368054177Z [inf]  2026-05-20 16:24:31 | INFO     | ai.openrouter_client | [AI] Picked 3 relevant link(s) from 10: ['https://ketone.com/collections/shop-all', 'https://ketone.com/pages/team', 'https://ketone.com/pages/subscription']
+2026-05-20T16:24:31.373730410Z [inf]  2026-05-20 16:24:31 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://ketone.com/collections/shop-all | provider=jina
+2026-05-20T16:24:31.379748472Z [inf]  2026-05-20 16:24:31 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://ketone.com/pages/team | provider=jina
+2026-05-20T16:24:31.386823831Z [inf]  2026-05-20 16:24:31 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://ketone.com/pages/subscription | provider=jina
+2026-05-20T16:24:31.487732744Z [inf]  2026-05-20 16:24:31 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=extract_answer | model=gemini-2.5-flash | input=13054 | output=206 | total=13260
+2026-05-20T16:24:31.487740439Z [inf]  INFO:     100.64.0.17:57820 - "POST /scrape/jina-test HTTP/1.1" 200 OK
+2026-05-20T16:24:31.647601721Z [inf]  2026-05-20 16:24:31 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=826 | output=18 | total=844
+2026-05-20T16:24:31.647608250Z [inf]  2026-05-20 16:24:31 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['thedopestshop products', 'thedopestshop shop online', 'thedopestshop items']
+2026-05-20T16:24:31.647614016Z [inf]  2026-05-20 16:24:31 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['thedopestshop products', 'thedopestshop shop online', 'thedopestshop items']
+2026-05-20T16:24:31.647620199Z [inf]  2026-05-20 16:24:31 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=thedopestshop%20products | provider=jina-search
+2026-05-20T16:24:31.647626207Z [inf]  2026-05-20 16:24:31 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=thedopestshop%20shop%20online | provider=jina-search
+2026-05-20T16:24:31.647632477Z [inf]  2026-05-20 16:24:31 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=thedopestshop%20items | provider=jina-search
+2026-05-20T16:24:31.669449961Z [inf]  2026-05-20 16:24:31 | INFO     | scraper.jina_scraper | [Jina] Scraped 19295 chars from https://feals.com (keep_links=True)
+2026-05-20T16:24:31.669456349Z [inf]  2026-05-20 16:24:31 | INFO     | main | [Jina Smart][Track A] Homepage: 19295 chars from https://feals.com
+2026-05-20T16:24:31.674771963Z [inf]  2026-05-20 16:24:31 | INFO     | main | [Jina Smart][Track A] Extracted 25 internal links from homepage
+2026-05-20T16:24:31.787191905Z [inf]  2026-05-20 16:24:31 | INFO     | scraper.jina_scraper | [Jina] Scraped 16945 chars from https://elsenutrition.com (keep_links=True)
+2026-05-20T16:24:31.787198026Z [inf]  2026-05-20 16:24:31 | INFO     | main | [Jina Smart][Track A] Homepage: 16945 chars from https://elsenutrition.com
+2026-05-20T16:24:31.787203379Z [inf]  2026-05-20 16:24:31 | INFO     | main | [Jina Smart][Track A] Extracted 3 internal links from homepage
+2026-05-20T16:24:31.800346948Z [inf]  2026-05-20 16:24:31 | WARNING  | main | [Jina Smart][Track B] Search failed for 'thedopestshop products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=thedopestshop%20products'
+2026-05-20T16:24:31.800354416Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:31.800363842Z [inf]  2026-05-20 16:24:31 | WARNING  | main | [Jina Smart][Track B] Search failed for 'thedopestshop shop online': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=thedopestshop%20shop%20online'
+2026-05-20T16:24:31.800369442Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:31.800376147Z [inf]  2026-05-20 16:24:31 | WARNING  | main | [Jina Smart][Track B] Search failed for 'thedopestshop items': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=thedopestshop%20items'
+2026-05-20T16:24:31.800382422Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:31.800388590Z [inf]  2026-05-20 16:24:31 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['thedopestshop products', 'thedopestshop shop online', 'thedopestshop items']
+2026-05-20T16:24:32.076299334Z [inf]  2026-05-20 16:24:32 | INFO     | ai.openrouter_client | Extracting answer from 13 pages with OpenRouter (gemini-2.5-flash)
+2026-05-20T16:24:32.076331200Z [inf]  2026-05-20 16:24:32 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=extract_answer | model=gemini-2.5-flash | input=11113 | output=618 | total=11731
+2026-05-20T16:24:32.076336782Z [inf]  INFO:     100.64.0.12:28192 - "POST /scrape/jina-test HTTP/1.1" 200 OK
+2026-05-20T16:24:32.076342442Z [inf]  2026-05-20 16:24:32 | INFO     | scraper.jina_scraper | [Jina] Scraped 8497 chars from https://findyourhealthyplace.com/?srsltid=AfmBOopWo5IgLZTtNdmsXYGmT1F_cZowh8GYBNWqlLqOKkT4VtM3nF1R (keep_links=False)
+2026-05-20T16:24:32.076347609Z [inf]  2026-05-20 16:24:32 | INFO     | main | [Jina Smart] Cross-poll: +5219 chars from https://findyourhealthyplace.com/?srsltid=AfmBOoofY4bBrAB52tcuu74ECmnilt9UNoXMeupjICzZU8rhhIXRSi_S
+2026-05-20T16:24:32.076352861Z [inf]  2026-05-20 16:24:32 | INFO     | main | [Jina Smart] Cross-poll: +8497 chars from https://findyourhealthyplace.com/?srsltid=AfmBOopWo5IgLZTtNdmsXYGmT1F_cZowh8GYBNWqlLqOKkT4VtM3nF1R
+2026-05-20T16:24:32.076360043Z [inf]  2026-05-20 16:24:32 | INFO     | main | [Jina Smart] Cross-poll: +8497 chars from https://findyourhealthyplace.com/?srsltid=AfmBOopGCzty0mVGZJcSS9PXtOo2HAVWABOxqmeIw_nvrIZL0X0KWDCs
+2026-05-20T16:24:32.076365936Z [inf]  2026-05-20 16:24:32 | INFO     | main | [Jina Smart] Combined: 5 direct + 11 search = 13 pages
+2026-05-20T16:24:32.129036737Z [inf]  2026-05-20 16:24:32 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=pick_relevant_links | model=gemini-2.5-flash | input=3475 | output=60 | total=3535
+2026-05-20T16:24:32.129045848Z [inf]  2026-05-20 16:24:32 | INFO     | ai.openrouter_client | [AI] Picked 2 relevant link(s) from 88: ['https://idealnutritionnow.com/pages/menu', 'https://idealnutritionnow.com/pages/about-us']
+2026-05-20T16:24:32.135957084Z [inf]  2026-05-20 16:24:32 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://idealnutritionnow.com/pages/menu | provider=jina
+2026-05-20T16:24:32.147026374Z [inf]  2026-05-20 16:24:32 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://idealnutritionnow.com/pages/about-us | provider=jina
+2026-05-20T16:24:32.178802366Z [inf]  2026-05-20 16:24:32 | INFO     | main | [Jina Smart] Starting pipeline with data keys: ['name', 'website']
+2026-05-20T16:24:32.188752561Z [inf]  2026-05-20 16:24:32 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://eviering.com | provider=jina
+2026-05-20T16:24:32.248092845Z [inf]  2026-05-20 16:24:32 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=pick_relevant_links | model=gemini-2.5-flash | input=989 | output=87 | total=1076
+2026-05-20T16:24:32.248097455Z [inf]  2026-05-20 16:24:32 | INFO     | ai.openrouter_client | [AI] Picked 3 relevant link(s) from 17: ['https://vellabio.com/collections/female-arousal-products', 'https://vellabio.com/pages/science-behind-female-arousal', 'https://vellabio.com/collections/female-arousal-products/category_bundle_&_kits']
+2026-05-20T16:24:32.253365529Z [inf]  2026-05-20 16:24:32 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://vellabio.com/collections/female-arousal-products | provider=jina
+2026-05-20T16:24:32.258635142Z [inf]  2026-05-20 16:24:32 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://vellabio.com/pages/science-behind-female-arousal | provider=jina
+2026-05-20T16:24:32.270598298Z [inf]  2026-05-20 16:24:32 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://vellabio.com/collections/female-arousal-products/category_bundle_&_kits | provider=jina
+2026-05-20T16:24:32.398990638Z [inf]  2026-05-20 16:24:32 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=831 | output=15 | total=846
+2026-05-20T16:24:32.398996795Z [inf]  2026-05-20 16:24:32 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['Vibrant Health products', 'Vibrant Health supplements', 'Vibrant Health online shop']
+2026-05-20T16:24:32.399001165Z [inf]  2026-05-20 16:24:32 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['Vibrant Health products', 'Vibrant Health supplements', 'Vibrant Health online shop']
+2026-05-20T16:24:32.399007728Z [inf]  2026-05-20 16:24:32 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=822 | output=18 | total=840
+2026-05-20T16:24:32.399013400Z [inf]  2026-05-20 16:24:32 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['Youtheory products', 'Youtheory supplements', 'Youtheory online shop']
+2026-05-20T16:24:32.399017512Z [inf]  2026-05-20 16:24:32 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['Youtheory products', 'Youtheory supplements', 'Youtheory online shop']
+2026-05-20T16:24:32.410928355Z [inf]  2026-05-20 16:24:32 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Vibrant%20Health%20products | provider=jina-search
+2026-05-20T16:24:32.416022662Z [inf]  2026-05-20 16:24:32 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Vibrant%20Health%20supplements | provider=jina-search
+2026-05-20T16:24:32.421076089Z [inf]  2026-05-20 16:24:32 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Vibrant%20Health%20online%20shop | provider=jina-search
+2026-05-20T16:24:32.426276727Z [inf]  2026-05-20 16:24:32 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Youtheory%20products | provider=jina-search
+2026-05-20T16:24:32.432745751Z [inf]  2026-05-20 16:24:32 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Youtheory%20supplements | provider=jina-search
+2026-05-20T16:24:32.440183071Z [inf]  2026-05-20 16:24:32 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Youtheory%20online%20shop | provider=jina-search
+2026-05-20T16:24:32.650879454Z [inf]  2026-05-20 16:24:32 | INFO     | scraper.jina_scraper | [Jina] Scraped 2257 chars from https://vellabio.com/collections/female-arousal-products (keep_links=False)
+2026-05-20T16:24:32.650886419Z [inf]  2026-05-20 16:24:32 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Youtheory products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Youtheory%20products'
+2026-05-20T16:24:32.650893402Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:32.650900481Z [inf]  2026-05-20 16:24:32 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Youtheory supplements': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Youtheory%20supplements'
+2026-05-20T16:24:32.650907615Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:32.650914069Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:32.650924182Z [inf]  2026-05-20 16:24:32 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Vibrant Health online shop': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Vibrant%20Health%20online%20shop'
+2026-05-20T16:24:32.650924870Z [inf]  2026-05-20 16:24:32 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Youtheory online shop': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Youtheory%20online%20shop'
+2026-05-20T16:24:32.650933650Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:32.650933952Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:32.650942814Z [inf]  2026-05-20 16:24:32 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['Youtheory products', 'Youtheory supplements', 'Youtheory online shop']
+2026-05-20T16:24:32.650943255Z [inf]  2026-05-20 16:24:32 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['Vibrant Health products', 'Vibrant Health supplements', 'Vibrant Health online shop']
+2026-05-20T16:24:32.650950009Z [inf]  2026-05-20 16:24:32 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Vibrant Health products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Vibrant%20Health%20products'
+2026-05-20T16:24:32.650955810Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:32.650962645Z [inf]  2026-05-20 16:24:32 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Vibrant Health supplements': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Vibrant%20Health%20supplements'
+2026-05-20T16:24:32.662592272Z [inf]  2026-05-20 16:24:32 | INFO     | main | [Jina Smart] Starting pipeline with data keys: ['name', 'website', 'linkedin']
+2026-05-20T16:24:32.674020119Z [inf]  2026-05-20 16:24:32 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://www.arrae.com | provider=jina
+2026-05-20T16:24:32.847827760Z [inf]  2026-05-20 16:24:32 | INFO     | scraper.jina_scraper | [Jina] Scraped 3405 chars from https://dosedaily.co/?srsltid=AfmBOorK5jyeKNY3nSPNXpQZIm-POj5asl2-MpOcVaz_iVLIhRC2eN_O (keep_links=False)
+2026-05-20T16:24:33.176861126Z [inf]  2026-05-20 16:24:33 | INFO     | scraper.jina_scraper | [Jina] Scraped 1136 chars from https://dosedaily.co/collections/shop-all?srsltid=AfmBOorVw50hnzaN3O9mCTURwttsmlLzT0T9c98plStboO0CJ4pNB_RN (keep_links=False)
+2026-05-20T16:24:33.295083480Z [inf]  2026-05-20 16:24:33 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=extract_answer | model=gemini-2.5-flash | input=2696 | output=166 | total=2862
+2026-05-20T16:24:33.295089988Z [inf]  INFO:     100.64.0.24:26744 - "POST /scrape/jina-test HTTP/1.1" 200 OK
+2026-05-20T16:24:33.371753629Z [inf]  2026-05-20 16:24:33 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=816 | output=15 | total=831
+2026-05-20T16:24:33.371759482Z [inf]  2026-05-20 16:24:33 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['Evie Ring products', 'Evie Ring smart ring', 'Buy Evie Ring']
+2026-05-20T16:24:33.371765638Z [inf]  2026-05-20 16:24:33 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['Evie Ring products', 'Evie Ring smart ring', 'Buy Evie Ring']
+2026-05-20T16:24:33.376802442Z [inf]  2026-05-20 16:24:33 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Evie%20Ring%20products | provider=jina-search
+2026-05-20T16:24:33.382233405Z [inf]  2026-05-20 16:24:33 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Evie%20Ring%20smart%20ring | provider=jina-search
+2026-05-20T16:24:33.393378479Z [inf]  2026-05-20 16:24:33 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Buy%20Evie%20Ring | provider=jina-search
+2026-05-20T16:24:33.666624725Z [inf]  2026-05-20 16:24:33 | WARNING  | main | [Jina Smart] Cross-poll scrape failed for https://reliefband.com/collections/all?srsltid=AfmBOopyzBPknCIKEi_SAkXAekKREhifPF6Qur3cdPrikeC_FmP7DLth: 
+2026-05-20T16:24:33.666629838Z [inf]  2026-05-20 16:24:33 | WARNING  | main | [Jina Smart] Cross-poll scrape failed for https://reliefband.com/?srsltid=AfmBOooR5po4AvCo1yUcg2JT4Vs1KAVt20OQUKFrxlITJlk93b6eoHAG: 
+2026-05-20T16:24:33.666635510Z [inf]  2026-05-20 16:24:33 | INFO     | main | [Jina Smart] Cross-poll: +8004 chars from https://reliefband.com/products/reliefband-classic?srsltid=AfmBOopKEtdI3QLUUyizCWdMFahOTHAxoWu1kyl51zjZ5n18J-6rYnoy
+2026-05-20T16:24:33.666640555Z [inf]  2026-05-20 16:24:33 | INFO     | main | [Jina Smart] Combined: 3 direct + 15 search = 17 pages
+2026-05-20T16:24:33.666645608Z [inf]  2026-05-20 16:24:33 | INFO     | ai.openrouter_client | Extracting answer from 17 pages with OpenRouter (gemini-2.5-flash)
+2026-05-20T16:24:33.666651160Z [inf]  2026-05-20 16:24:33 | INFO     | scraper.jina_scraper | [Jina] Scraped 15795 chars from https://kos.com (keep_links=True)
+2026-05-20T16:24:33.666656333Z [inf]  2026-05-20 16:24:33 | INFO     | main | [Jina Smart][Track A] Homepage: 15795 chars from https://kos.com
+2026-05-20T16:24:33.666660918Z [inf]  2026-05-20 16:24:33 | INFO     | main | [Jina Smart][Track A] Extracted 1 internal links from homepage
+2026-05-20T16:24:33.666665414Z [inf]  2026-05-20 16:24:33 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Evie Ring products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Evie%20Ring%20products'
+2026-05-20T16:24:33.666670437Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:33.666676517Z [inf]  2026-05-20 16:24:33 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Evie Ring smart ring': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Evie%20Ring%20smart%20ring'
+2026-05-20T16:24:33.666797367Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:33.666802132Z [inf]  2026-05-20 16:24:33 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Buy Evie Ring': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Buy%20Evie%20Ring'
+2026-05-20T16:24:33.666807321Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:33.666811990Z [inf]  2026-05-20 16:24:33 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['Evie Ring products', 'Evie Ring smart ring', 'Buy Evie Ring']
+2026-05-20T16:24:33.666816183Z [inf]  2026-05-20 16:24:33 | INFO     | main | [Jina Smart] Starting pipeline with data keys: ['name', 'website']
+2026-05-20T16:24:33.678015114Z [inf]  2026-05-20 16:24:33 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://heritagestore.com | provider=jina
+2026-05-20T16:24:33.741726486Z [inf]  2026-05-20 16:24:33 | INFO     | scraper.jina_scraper | [Jina] Scraped 5183 chars from https://florastor.com/products/florastor-dual-action-probiotic-supplement?srsltid=AfmBOorG54-6OsqIGih_zDaIsTeZrNUpeBZao2cJXUZ_LsS4AGNsq22Z (keep_links=False)
+2026-05-20T16:24:33.741735844Z [inf]  2026-05-20 16:24:33 | INFO     | main | [Jina Smart] Cross-poll: +2667 chars from https://florastor.com/collections/all?srsltid=AfmBOop5avw8Y10fCyVKFGjR87qJFqvv1OGkQU2fmqUoRH1LC634dqEr
+2026-05-20T16:24:33.741742198Z [inf]  2026-05-20 16:24:33 | INFO     | main | [Jina Smart] Cross-poll: +2931 chars from https://florastor.com/?srsltid=AfmBOoozKuwN_1uEmM-IqcLXUAeiKIYESpz0hudLWmsr8i3EC1s2QTGR
+2026-05-20T16:24:33.741749679Z [inf]  2026-05-20 16:24:33 | INFO     | main | [Jina Smart] Cross-poll: +5183 chars from https://florastor.com/products/florastor-dual-action-probiotic-supplement?srsltid=AfmBOorG54-6OsqIGih_zDaIsTeZrNUpeBZao2cJXUZ_LsS4AGNsq22Z
+2026-05-20T16:24:33.741755079Z [inf]  2026-05-20 16:24:33 | INFO     | main | [Jina Smart] Combined: 6 direct + 14 search = 17 pages
+2026-05-20T16:24:33.741759999Z [inf]  2026-05-20 16:24:33 | INFO     | ai.openrouter_client | Extracting answer from 17 pages with OpenRouter (gemini-2.5-flash)
+2026-05-20T16:24:33.764869930Z [inf]  2026-05-20 16:24:33 | WARNING  | main | [Jina Smart][Track A] Hit 18.0s deadline — using whatever Track B has
+2026-05-20T16:24:33.766024246Z [inf]  2026-05-20 16:24:33 | WARNING  | main | [Jina Smart] Both tracks returned no content — returning NOTFOUND
+2026-05-20T16:24:33.766030370Z [inf]  2026-05-20 16:24:33 | WARNING  | main | [Jina Smart] Attempt 1/2 returned NOTFOUND — retrying...
+2026-05-20T16:24:33.798040446Z [inf]  2026-05-20 16:24:33 | INFO     | scraper.jina_scraper | [Jina] Scraped 18303 chars from https://thelumebox.com (keep_links=True)
+2026-05-20T16:24:33.798053288Z [inf]  2026-05-20 16:24:33 | INFO     | main | [Jina Smart][Track A] Homepage: 18303 chars from https://thelumebox.com
+2026-05-20T16:24:33.798060648Z [inf]  2026-05-20 16:24:33 | INFO     | main | [Jina Smart][Track A] Extracted 2 internal links from homepage
+2026-05-20T16:24:33.896111605Z [inf]  2026-05-20 16:24:33 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=extract_answer | model=gemini-2.5-flash | input=14012 | output=253 | total=14265
+2026-05-20T16:24:33.897158302Z [inf]  INFO:     100.64.0.14:38044 - "POST /scrape/jina-test HTTP/1.1" 200 OK
+2026-05-20T16:24:34.162647341Z [inf]  2026-05-20 16:24:34 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=extract_answer | model=gemini-2.5-flash | input=9658 | output=210 | total=9868
+2026-05-20T16:24:34.162652586Z [inf]  INFO:     100.64.0.16:26554 - "POST /scrape/jina-test HTTP/1.1" 200 OK
+2026-05-20T16:24:34.206203687Z [inf]  2026-05-20 16:24:34 | INFO     | scraper.jina_scraper | [Jina] Scraped 2779 chars from https://www.phdfemininehealth.com/?srsltid=AfmBOorWLaZNVb-Hd0i6_OTx5eonGU9ZmuE_iTnBwuMHK1rMZXIV7nXA (keep_links=False)
+2026-05-20T16:24:34.206208549Z [inf]  2026-05-20 16:24:34 | INFO     | main | [Jina Smart] Cross-poll: +2779 chars from https://www.phdfemininehealth.com/?srsltid=AfmBOoo9NW_MmX2McGo9mNeIFWmuDp878clLYNtEiTWUpQ4a6U5g2hPG
+2026-05-20T16:24:34.206213406Z [inf]  2026-05-20 16:24:34 | INFO     | main | [Jina Smart] Cross-poll: +2747 chars from https://www.phdfemininehealth.com/?srsltid=AfmBOopjXURMcIfJLWibBasj52ndPY9ipxp_3XOZKjSGjYWgXEWKYOO4
+2026-05-20T16:24:34.206217996Z [inf]  2026-05-20 16:24:34 | INFO     | main | [Jina Smart] Cross-poll: +2779 chars from https://www.phdfemininehealth.com/?srsltid=AfmBOorWLaZNVb-Hd0i6_OTx5eonGU9ZmuE_iTnBwuMHK1rMZXIV7nXA
+2026-05-20T16:24:34.206222369Z [inf]  2026-05-20 16:24:34 | INFO     | main | [Jina Smart] Combined: 7 direct + 12 search = 16 pages
+2026-05-20T16:24:34.206226956Z [inf]  2026-05-20 16:24:34 | INFO     | ai.openrouter_client | Extracting answer from 16 pages with OpenRouter (gemini-2.5-flash)
+2026-05-20T16:24:34.256916751Z [inf]  2026-05-20 16:24:34 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=extract_answer | model=gemini-2.5-flash | input=13065 | output=241 | total=13306
+2026-05-20T16:24:34.257915530Z [inf]  INFO:     100.64.0.22:20664 - "POST /scrape/jina-test HTTP/1.1" 200 OK
+2026-05-20T16:24:34.661808741Z [inf]  2026-05-20 16:24:34 | INFO     | main | [Jina Smart] Starting pipeline with data keys: ['name', 'website']
+2026-05-20T16:24:34.661815030Z [inf]  2026-05-20 16:24:34 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://davids-usa.com | provider=jina
+2026-05-20T16:24:34.661820194Z [inf]  2026-05-20 16:24:34 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=831 | output=12 | total=843
+2026-05-20T16:24:34.661824751Z [inf]  2026-05-20 16:24:34 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['Arrae products', 'Arrae supplements', 'Arrae online store']
+2026-05-20T16:24:34.661829094Z [inf]  2026-05-20 16:24:34 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['Arrae products', 'Arrae supplements', 'Arrae online store']
+2026-05-20T16:24:34.661833959Z [inf]  2026-05-20 16:24:34 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Arrae%20products | provider=jina-search
+2026-05-20T16:24:34.661838469Z [inf]  2026-05-20 16:24:34 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Arrae%20supplements | provider=jina-search
+2026-05-20T16:24:34.661842856Z [inf]  2026-05-20 16:24:34 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Arrae%20online%20store | provider=jina-search
+2026-05-20T16:24:34.733653960Z [inf]  2026-05-20 16:24:34 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=pick_relevant_links | model=gemini-2.5-flash | input=1008 | output=66 | total=1074
+2026-05-20T16:24:34.733663078Z [inf]  2026-05-20 16:24:34 | INFO     | ai.openrouter_client | [AI] Picked 3 relevant link(s) from 23: ['https://akila.la/collections/all', 'https://akila.la/collections/best-sellers', 'https://akila.la/pages/akila-eyewear']
+2026-05-20T16:24:34.733669209Z [inf]  2026-05-20 16:24:34 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://akila.la/collections/all | provider=jina
+2026-05-20T16:24:34.745142847Z [inf]  2026-05-20 16:24:34 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://akila.la/collections/best-sellers | provider=jina
+2026-05-20T16:24:34.750401934Z [inf]  2026-05-20 16:24:34 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://akila.la/pages/akila-eyewear | provider=jina
+2026-05-20T16:24:34.790667109Z [inf]  2026-05-20 16:24:34 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=extract_answer | model=gemini-2.5-flash | input=19519 | output=202 | total=19721
+2026-05-20T16:24:34.790681333Z [inf]  INFO:     100.64.0.19:37322 - "POST /scrape/jina-test HTTP/1.1" 200 OK
+2026-05-20T16:24:34.790713730Z [inf]  2026-05-20 16:24:34 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Arrae products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Arrae%20products'
+2026-05-20T16:24:34.790718883Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:34.790724652Z [inf]  2026-05-20 16:24:34 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Arrae supplements': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Arrae%20supplements'
+2026-05-20T16:24:34.790730304Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:34.790735059Z [inf]  2026-05-20 16:24:34 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Arrae online store': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Arrae%20online%20store'
+2026-05-20T16:24:34.790739952Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:34.790744770Z [inf]  2026-05-20 16:24:34 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['Arrae products', 'Arrae supplements', 'Arrae online store']
+2026-05-20T16:24:34.795642703Z [inf]  2026-05-20 16:24:34 | INFO     | main | [Jina Smart] Starting pipeline with data keys: ['name', 'website']
+2026-05-20T16:24:34.817523484Z [inf]  2026-05-20 16:24:34 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://www.byte.com | provider=jina
+2026-05-20T16:24:34.844115783Z [inf]  2026-05-20 16:24:34 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=extract_answer | model=gemini-2.5-flash | input=3158 | output=226 | total=3384
+2026-05-20T16:24:34.844121524Z [inf]  INFO:     100.64.0.23:14294 - "POST /scrape/jina-test HTTP/1.1" 200 OK
+2026-05-20T16:24:34.906615098Z [inf]  2026-05-20 16:24:34 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=extract_answer | model=gemini-2.5-flash | input=3137 | output=134 | total=3271
+2026-05-20T16:24:34.906623082Z [inf]  INFO:     100.64.0.13:40718 - "POST /scrape/jina-test HTTP/1.1" 200 OK
+2026-05-20T16:24:35.164437487Z [inf]  2026-05-20 16:24:35 | WARNING  | main | [Jina Smart][Track B] Hit 12.0s deadline — using whatever Track A has
+2026-05-20T16:24:35.225133235Z [inf]  2026-05-20 16:24:35 | WARNING  | scraper.jina_scraper | [Jina] Failed for https://www.recoveryfirefly.com: 
+2026-05-20T16:24:35.225142010Z [inf]  2026-05-20 16:24:35 | WARNING  | main | [Jina Smart][Track A] Homepage fetch failed for https://www.recoveryfirefly.com: Jina Reader failed to scrape https://www.recoveryfirefly.com: 
+2026-05-20T16:24:35.225153716Z [inf]  2026-05-20 16:24:35 | WARNING  | main | [Jina Smart] Both tracks returned no content — returning NOTFOUND
+2026-05-20T16:24:35.225160168Z [inf]  2026-05-20 16:24:35 | WARNING  | main | [Jina Smart] Attempt 1/2 returned NOTFOUND — retrying...
+2026-05-20T16:24:35.258082240Z [inf]  2026-05-20 16:24:35 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=extract_answer | model=gemini-2.5-flash | input=15430 | output=335 | total=15765
+2026-05-20T16:24:35.258090316Z [inf]  INFO:     100.64.0.6:13176 - "POST /scrape/jina-test HTTP/1.1" 200 OK
+2026-05-20T16:24:35.278432095Z [inf]  2026-05-20 16:24:35 | INFO     | main | [Jina Smart] Starting pipeline with data keys: ['name', 'website', 'linkedin']
+2026-05-20T16:24:35.298297983Z [inf]  2026-05-20 16:24:35 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://boncharge.com | provider=jina
+2026-05-20T16:24:35.298304535Z [inf]  2026-05-20 16:24:35 | WARNING  | scraper.jina_scraper | [Jina] Failed for https://www.getsoul.com: 
+2026-05-20T16:24:35.298309612Z [inf]  2026-05-20 16:24:35 | WARNING  | main | [Jina Smart][Track A] Homepage fetch failed for https://www.getsoul.com: Jina Reader failed to scrape https://www.getsoul.com: 
+2026-05-20T16:24:35.308935047Z [inf]  2026-05-20 16:24:35 | WARNING  | main | [Jina Smart] Both tracks returned no content — returning NOTFOUND
+2026-05-20T16:24:35.308939023Z [inf]  2026-05-20 16:24:35 | WARNING  | main | [Jina Smart][Track A] Hit 18.0s deadline — using whatever Track B has
+2026-05-20T16:24:35.313754815Z [inf]  2026-05-20 16:24:35 | WARNING  | main | [Jina Smart] All 2 attempts returned NOTFOUND — stopping.
+2026-05-20T16:24:35.313761394Z [inf]  INFO:     100.64.0.22:40196 - "POST /scrape/jina-test HTTP/1.1" 200 OK
+2026-05-20T16:24:35.313766900Z [inf]  2026-05-20 16:24:35 | WARNING  | main | [Jina Smart] Both tracks returned no content — returning NOTFOUND
+2026-05-20T16:24:35.313772250Z [inf]  2026-05-20 16:24:35 | WARNING  | main | [Jina Smart] Attempt 1/2 returned NOTFOUND — retrying...
+2026-05-20T16:24:35.335078135Z [inf]  2026-05-20 16:24:35 | INFO     | main | [Jina Smart] Starting pipeline with data keys: ['name', 'website', 'linkedin']
+2026-05-20T16:24:35.350370855Z [inf]  2026-05-20 16:24:35 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://daiyafoods.com | provider=jina
+2026-05-20T16:24:35.350976791Z [inf]  2026-05-20 16:24:35 | INFO     | scraper.jina_scraper | [Jina] Scraped 3268 chars from https://sexwithemily.com (keep_links=True)
+2026-05-20T16:24:35.351676224Z [inf]  2026-05-20 16:24:35 | INFO     | main | [Jina Smart][Track A] Homepage: 3268 chars from https://sexwithemily.com
+2026-05-20T16:24:35.351681667Z [inf]  2026-05-20 16:24:35 | INFO     | main | [Jina Smart][Track A] Extracted 0 internal links from homepage
+2026-05-20T16:24:35.352252435Z [inf]  2026-05-20 16:24:35 | INFO     | main | [Jina Smart] Combined: 1 direct + 0 search = 1 pages
+2026-05-20T16:24:35.352257280Z [inf]  2026-05-20 16:24:35 | INFO     | ai.openrouter_client | Extracting answer from 1 pages with OpenRouter (gemini-2.5-flash)
+2026-05-20T16:24:35.425990686Z [inf]  2026-05-20 16:24:35 | INFO     | main | [Jina Smart] Starting pipeline with data keys: ['name', 'website', 'linkedin']
+2026-05-20T16:24:35.465104997Z [inf]  2026-05-20 16:24:35 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://drsebiscellfood.com | provider=jina
+2026-05-20T16:24:35.502348185Z [inf]  2026-05-20 16:24:35 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=pick_relevant_links | model=gemini-2.5-flash | input=1211 | output=40 | total=1251
+2026-05-20T16:24:35.502353245Z [inf]  2026-05-20 16:24:35 | INFO     | ai.openrouter_client | [AI] Picked 2 relevant link(s) from 25: ['https://feals.com/collections/all', 'https://feals.com/pages/discover']
+2026-05-20T16:24:35.502357574Z [inf]  2026-05-20 16:24:35 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=816 | output=13 | total=829
+2026-05-20T16:24:35.502361598Z [inf]  2026-05-20 16:24:35 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['Heritage Store products', 'Heritage Store natural remedies', 'Heritage Store online store']
+2026-05-20T16:24:35.502365551Z [inf]  2026-05-20 16:24:35 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['Heritage Store products', 'Heritage Store natural remedies', 'Heritage Store online store']
+2026-05-20T16:24:35.513503413Z [inf]  2026-05-20 16:24:35 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://feals.com/collections/all | provider=jina
+2026-05-20T16:24:35.514121192Z [inf]  2026-05-20 16:24:35 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://feals.com/pages/discover | provider=jina
+2026-05-20T16:24:35.525789123Z [inf]  2026-05-20 16:24:35 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Heritage%20Store%20products | provider=jina-search
+2026-05-20T16:24:35.526922802Z [inf]  2026-05-20 16:24:35 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Heritage%20Store%20natural%20remedies | provider=jina-search
+2026-05-20T16:24:35.533036120Z [inf]  2026-05-20 16:24:35 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Heritage%20Store%20online%20store | provider=jina-search
+2026-05-20T16:24:35.644128890Z [inf]  2026-05-20 16:24:35 | INFO     | main | [Jina Smart] Starting pipeline with data keys: ['name', 'website', 'linkedin']
+2026-05-20T16:24:35.644136965Z [inf]  2026-05-20 16:24:35 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://tryautobrush.com | provider=jina
+2026-05-20T16:24:35.644142194Z [inf]  2026-05-20 16:24:35 | INFO     | scraper.jina_scraper | [Jina] Scraped 10016 chars from https://eczemahoneyco.com (keep_links=True)
+2026-05-20T16:24:35.644147755Z [inf]  2026-05-20 16:24:35 | INFO     | main | [Jina Smart][Track A] Homepage: 10016 chars from https://eczemahoneyco.com
+2026-05-20T16:24:35.644160982Z [inf]  2026-05-20 16:24:35 | INFO     | main | [Jina Smart][Track A] Extracted 17 internal links from homepage
+2026-05-20T16:24:35.644166698Z [inf]  2026-05-20 16:24:35 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=pick_relevant_links | model=gemini-2.5-flash | input=1585 | output=73 | total=1658
+2026-05-20T16:24:35.644171236Z [inf]  2026-05-20 16:24:35 | INFO     | ai.openrouter_client | [AI] Picked 2 relevant link(s) from 31: ['https://www.olivemypickle.com/collections/all', 'https://www.olivemypickle.com/pages/about-olive-my-pickle']
+2026-05-20T16:24:35.644176328Z [inf]  2026-05-20 16:24:35 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://www.olivemypickle.com/collections/all | provider=jina
+2026-05-20T16:24:35.644182043Z [inf]  2026-05-20 16:24:35 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://www.olivemypickle.com/pages/about-olive-my-pickle | provider=jina
+2026-05-20T16:24:35.644189974Z [inf]  2026-05-20 16:24:35 | INFO     | scraper.jina_scraper | [Jina] Scraped 7035 chars from https://hoogahealth.com/?srsltid=AfmBOoq4-mm5YgaxBh-k6ikCvd_0cjfNWuR_lmJDJMqGsOllth4vWW65 (keep_links=False)
+2026-05-20T16:24:35.716166359Z [inf]  2026-05-20 16:24:35 | INFO     | scraper.jina_scraper | [Jina] Scraped 3405 chars from https://dosedaily.co/?srsltid=AfmBOorGK_mRnzjzf05NFISf7Vz2p94Cyl4Wyq6A-jIfHy3o1Mi8Ja0- (keep_links=False)
+2026-05-20T16:24:35.716176174Z [inf]  2026-05-20 16:24:35 | INFO     | main | [Jina Smart] Cross-poll: +1136 chars from https://dosedaily.co/collections/shop-all?srsltid=AfmBOorVw50hnzaN3O9mCTURwttsmlLzT0T9c98plStboO0CJ4pNB_RN
+2026-05-20T16:24:35.716182113Z [inf]  2026-05-20 16:24:35 | INFO     | main | [Jina Smart] Cross-poll: +3405 chars from https://dosedaily.co/?srsltid=AfmBOorGK_mRnzjzf05NFISf7Vz2p94Cyl4Wyq6A-jIfHy3o1Mi8Ja0-
+2026-05-20T16:24:35.716186796Z [inf]  2026-05-20 16:24:35 | INFO     | main | [Jina Smart] Cross-poll: +3405 chars from https://dosedaily.co/?srsltid=AfmBOorK5jyeKNY3nSPNXpQZIm-POj5asl2-MpOcVaz_iVLIhRC2eN_O
+2026-05-20T16:24:35.716191562Z [inf]  2026-05-20 16:24:35 | INFO     | main | [Jina Smart] Combined: 5 direct + 13 search = 15 pages
+2026-05-20T16:24:35.716196940Z [inf]  2026-05-20 16:24:35 | INFO     | ai.openrouter_client | Extracting answer from 15 pages with OpenRouter (gemini-2.5-flash)
+2026-05-20T16:24:35.872850957Z [inf]  2026-05-20 16:24:35 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Heritage Store products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Heritage%20Store%20products'
+2026-05-20T16:24:35.872862260Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:35.872869745Z [inf]  2026-05-20 16:24:35 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Heritage Store natural remedies': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Heritage%20Store%20natural%20remedies'
+2026-05-20T16:24:35.872876787Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:35.872885100Z [inf]  2026-05-20 16:24:35 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Heritage Store online store': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Heritage%20Store%20online%20store'
+2026-05-20T16:24:35.872892889Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:35.872899873Z [inf]  2026-05-20 16:24:35 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['Heritage Store products', 'Heritage Store natural remedies', 'Heritage Store online store']
+2026-05-20T16:24:36.083629529Z [inf]  2026-05-20 16:24:36 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=extract_answer | model=gemini-2.5-flash | input=13100 | output=225 | total=13325
+2026-05-20T16:24:36.083634614Z [inf]  INFO:     100.64.0.20:15854 - "POST /scrape/jina-test HTTP/1.1" 200 OK
+2026-05-20T16:24:36.302483782Z [inf]  2026-05-20 16:24:36 | INFO     | main | [Jina Smart] Starting pipeline with data keys: ['name', 'website', 'linkedin']
+2026-05-20T16:24:36.314629295Z [inf]  2026-05-20 16:24:36 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://www.bellaallnatural.com | provider=jina
+2026-05-20T16:24:36.670550074Z [inf]  2026-05-20 16:24:36 | WARNING  | main | [Jina Smart][Track A] Hit 18.0s deadline — using whatever Track B has
+2026-05-20T16:24:36.670555239Z [inf]  2026-05-20 16:24:36 | WARNING  | main | [Jina Smart] Both tracks returned no content — returning NOTFOUND
+2026-05-20T16:24:36.670561105Z [inf]  2026-05-20 16:24:36 | WARNING  | main | [Jina Smart] Attempt 1/2 returned NOTFOUND — retrying...
+2026-05-20T16:24:36.731463250Z [inf]  2026-05-20 16:24:36 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=extract_answer | model=gemini-2.5-flash | input=17964 | output=472 | total=18436
+2026-05-20T16:24:36.732836063Z [inf]  INFO:     100.64.0.6:13170 - "POST /scrape/jina-test HTTP/1.1" 200 OK
+2026-05-20T16:24:36.794397681Z [inf]  2026-05-20 16:24:36 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=834 | output=16 | total=850
+2026-05-20T16:24:36.794405266Z [inf]  2026-05-20 16:24:36 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['autobrush products', 'autobrush electric toothbrush', 'autobrush shop online']
+2026-05-20T16:24:36.794412338Z [inf]  2026-05-20 16:24:36 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['autobrush products', 'autobrush electric toothbrush', 'autobrush shop online']
+2026-05-20T16:24:36.800403671Z [inf]  2026-05-20 16:24:36 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=autobrush%20products | provider=jina-search
+2026-05-20T16:24:36.806129726Z [inf]  2026-05-20 16:24:36 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=autobrush%20electric%20toothbrush | provider=jina-search
+2026-05-20T16:24:36.811751049Z [inf]  2026-05-20 16:24:36 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=autobrush%20shop%20online | provider=jina-search
+2026-05-20T16:24:36.964599675Z [inf]  2026-05-20 16:24:36 | INFO     | scraper.jina_scraper | [Jina] Scraped 2762 chars from https://hoogahealth.com/collections/all?srsltid=AfmBOop6EZuenyx3xly2BPAinIDbocNX6zInQyhs6T6uYhJmiwL4WJjF (keep_links=False)
+2026-05-20T16:24:36.964604484Z [inf]  2026-05-20 16:24:36 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=814 | output=11 | total=825
+2026-05-20T16:24:36.964609955Z [inf]  2026-05-20 16:24:36 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['Byte products', 'Byte clear aligners', 'Byte dental solutions']
+2026-05-20T16:24:36.964614816Z [inf]  2026-05-20 16:24:36 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['Byte products', 'Byte clear aligners', 'Byte dental solutions']
+2026-05-20T16:24:36.969980348Z [inf]  2026-05-20 16:24:36 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Byte%20products | provider=jina-search
+2026-05-20T16:24:36.982589260Z [inf]  2026-05-20 16:24:36 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Byte%20clear%20aligners | provider=jina-search
+2026-05-20T16:24:36.985141687Z [inf]  2026-05-20 16:24:36 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Byte%20dental%20solutions | provider=jina-search
+2026-05-20T16:24:37.004667688Z [inf]  2026-05-20 16:24:37 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=extract_answer | model=gemini-2.5-flash | input=18345 | output=526 | total=18871
+2026-05-20T16:24:37.005897352Z [inf]  INFO:     100.64.0.4:32500 - "POST /scrape/jina-test HTTP/1.1" 200 OK
+2026-05-20T16:24:37.024319351Z [inf]  2026-05-20 16:24:37 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=859 | output=27 | total=886
+2026-05-20T16:24:37.024325489Z [inf]  2026-05-20 16:24:37 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ["Dr Sebi's Cell Food products", "Dr Sebi's Cell Food supplements", "Dr Sebi's Cell Food online shop"]
+2026-05-20T16:24:37.024330660Z [inf]  2026-05-20 16:24:37 | INFO     | main | [Jina Smart][Track B] 3 search queries: ["Dr Sebi's Cell Food products", "Dr Sebi's Cell Food supplements", "Dr Sebi's Cell Food online shop"]
+2026-05-20T16:24:37.030103111Z [inf]  2026-05-20 16:24:37 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Dr%20Sebi%27s%20Cell%20Food%20products | provider=jina-search
+2026-05-20T16:24:37.035954578Z [inf]  2026-05-20 16:24:37 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Dr%20Sebi%27s%20Cell%20Food%20supplements | provider=jina-search
+2026-05-20T16:24:37.041620819Z [inf]  2026-05-20 16:24:37 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Dr%20Sebi%27s%20Cell%20Food%20online%20shop | provider=jina-search
+2026-05-20T16:24:37.048664771Z [inf]  2026-05-20 16:24:37 | WARNING  | main | [Jina Smart][Track B] Search failed for 'autobrush products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=autobrush%20products'
+2026-05-20T16:24:37.048671085Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:37.048675968Z [inf]  2026-05-20 16:24:37 | WARNING  | main | [Jina Smart][Track B] Search failed for 'autobrush electric toothbrush': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=autobrush%20electric%20toothbrush'
+2026-05-20T16:24:37.048680489Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:37.048686132Z [inf]  2026-05-20 16:24:37 | WARNING  | main | [Jina Smart][Track B] Search failed for 'autobrush shop online': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=autobrush%20shop%20online'
+2026-05-20T16:24:37.048690928Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:37.048695333Z [inf]  2026-05-20 16:24:37 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['autobrush products', 'autobrush electric toothbrush', 'autobrush shop online']
+2026-05-20T16:24:37.079219146Z [inf]  2026-05-20 16:24:37 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=835 | output=16 | total=851
+2026-05-20T16:24:37.079225431Z [inf]  2026-05-20 16:24:37 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['Daiya Foods products', 'Daiya Foods plant-based', 'Daiya Foods online']
+2026-05-20T16:24:37.079231987Z [inf]  2026-05-20 16:24:37 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['Daiya Foods products', 'Daiya Foods plant-based', 'Daiya Foods online']
+2026-05-20T16:24:37.084250067Z [inf]  2026-05-20 16:24:37 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Daiya%20Foods%20products | provider=jina-search
+2026-05-20T16:24:37.090174011Z [inf]  2026-05-20 16:24:37 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Daiya%20Foods%20plant-based | provider=jina-search
+2026-05-20T16:24:37.096159367Z [inf]  2026-05-20 16:24:37 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Daiya%20Foods%20online | provider=jina-search
+2026-05-20T16:24:37.119661719Z [inf]  2026-05-20 16:24:37 | WARNING  | scraper.jina_scraper | [Jina] Failed for https://medterracbd.com: 
+2026-05-20T16:24:37.125358392Z [inf]  2026-05-20 16:24:37 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://www.medterracbd.com | provider=jina
+2026-05-20T16:24:37.136836782Z [inf]  2026-05-20 16:24:37 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=827 | output=12 | total=839
+2026-05-20T16:24:37.136843761Z [inf]  2026-05-20 16:24:37 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['Bon Charge products', 'Bon Charge wellness', 'Bon Charge online shop']
+2026-05-20T16:24:37.136851231Z [inf]  2026-05-20 16:24:37 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['Bon Charge products', 'Bon Charge wellness', 'Bon Charge online shop']
+2026-05-20T16:24:37.142625592Z [inf]  2026-05-20 16:24:37 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Bon%20Charge%20products | provider=jina-search
+2026-05-20T16:24:37.153915476Z [inf]  2026-05-20 16:24:37 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Bon%20Charge%20wellness | provider=jina-search
+2026-05-20T16:24:37.159346426Z [inf]  2026-05-20 16:24:37 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Bon%20Charge%20online%20shop | provider=jina-search
+2026-05-20T16:24:37.226185347Z [inf]  2026-05-20 16:24:37 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['Byte products', 'Byte clear aligners', 'Byte dental solutions']
+2026-05-20T16:24:37.226197757Z [inf]  2026-05-20 16:24:37 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Byte products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Byte%20products'
+2026-05-20T16:24:37.226202521Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:37.226207312Z [inf]  2026-05-20 16:24:37 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Byte clear aligners': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Byte%20clear%20aligners'
+2026-05-20T16:24:37.226211759Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:37.226215775Z [inf]  2026-05-20 16:24:37 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Byte dental solutions': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Byte%20dental%20solutions'
+2026-05-20T16:24:37.226220171Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:37.239881478Z [inf]  2026-05-20 16:24:37 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Dr Sebi's Cell Food products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Dr%20Sebi%27s%20Cell%20Food%20products'
+2026-05-20T16:24:37.239889388Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:37.239896372Z [inf]  2026-05-20 16:24:37 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Dr Sebi's Cell Food supplements': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Dr%20Sebi%27s%20Cell%20Food%20supplements'
+2026-05-20T16:24:37.239903077Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:37.239909724Z [inf]  2026-05-20 16:24:37 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Dr Sebi's Cell Food online shop': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Dr%20Sebi%27s%20Cell%20Food%20online%20shop'
+2026-05-20T16:24:37.239916125Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:37.239921494Z [inf]  2026-05-20 16:24:37 | WARNING  | main | [Jina Smart][Track B] No results for any of: ["Dr Sebi's Cell Food products", "Dr Sebi's Cell Food supplements", "Dr Sebi's Cell Food online shop"]
+2026-05-20T16:24:37.263748498Z [inf]  2026-05-20 16:24:37 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=extract_answer | model=gemini-2.5-flash | input=22404 | output=272 | total=22676
+2026-05-20T16:24:37.263754443Z [inf]  INFO:     100.64.0.17:28614 - "POST /scrape/jina-test HTTP/1.1" 200 OK
+2026-05-20T16:24:37.309306980Z [inf]  2026-05-20 16:24:37 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Daiya Foods products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Daiya%20Foods%20products'
+2026-05-20T16:24:37.309316701Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:37.309322254Z [inf]  2026-05-20 16:24:37 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Daiya Foods plant-based': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Daiya%20Foods%20plant-based'
+2026-05-20T16:24:37.309327601Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:37.309333112Z [inf]  2026-05-20 16:24:37 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Daiya Foods online': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Daiya%20Foods%20online'
+2026-05-20T16:24:37.309337816Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:37.309345092Z [inf]  2026-05-20 16:24:37 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['Daiya Foods products', 'Daiya Foods plant-based', 'Daiya Foods online']
+2026-05-20T16:24:37.337274917Z [inf]  2026-05-20 16:24:37 | INFO     | main | [Jina Smart] Starting pipeline with data keys: ['name', 'website', 'linkedin']
+2026-05-20T16:24:37.349758584Z [inf]  2026-05-20 16:24:37 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://modo.com | provider=jina
+2026-05-20T16:24:37.478364499Z [inf]  2026-05-20 16:24:37 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Bon Charge products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Bon%20Charge%20products'
+2026-05-20T16:24:37.478369857Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:37.478374622Z [inf]  2026-05-20 16:24:37 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Bon Charge wellness': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Bon%20Charge%20wellness'
+2026-05-20T16:24:37.478379706Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:37.478384479Z [inf]  2026-05-20 16:24:37 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Bon Charge online shop': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Bon%20Charge%20online%20shop'
+2026-05-20T16:24:37.478389365Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:37.478394608Z [inf]  2026-05-20 16:24:37 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['Bon Charge products', 'Bon Charge wellness', 'Bon Charge online shop']
+2026-05-20T16:24:37.687156562Z [inf]  2026-05-20 16:24:37 | INFO     | scraper.jina_scraper | [Jina] Scraped 28537 chars from https://www.youtheory.com (keep_links=True)
+2026-05-20T16:24:37.687167389Z [inf]  2026-05-20 16:24:37 | INFO     | main | [Jina Smart][Track A] Homepage: 20000 chars from https://www.youtheory.com
+2026-05-20T16:24:37.687173772Z [inf]  2026-05-20 16:24:37 | INFO     | main | [Jina Smart][Track A] Extracted 14 internal links from homepage
+2026-05-20T16:24:37.687179120Z [inf]  2026-05-20 16:24:37 | INFO     | scraper.jina_scraper | [Jina] Scraped 90250 chars from https://boncharge.com (keep_links=True)
+2026-05-20T16:24:37.687184062Z [inf]  2026-05-20 16:24:37 | INFO     | main | [Jina Smart][Track A] Homepage: 20000 chars from https://boncharge.com
+2026-05-20T16:24:37.687188804Z [inf]  2026-05-20 16:24:37 | INFO     | main | [Jina Smart][Track A] Extracted 53 internal links from homepage
+2026-05-20T16:24:37.687193122Z [inf]  2026-05-20 16:24:37 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=pick_relevant_links | model=gemini-2.5-flash | input=644 | output=36 | total=680
+2026-05-20T16:24:37.687199083Z [inf]  2026-05-20 16:24:37 | INFO     | ai.openrouter_client | [AI] Picked 2 relevant link(s) from 2: ['https://thelumebox.com/collections/full-catalog', 'https://thelumebox.com/products/lumebox-2-0']
+2026-05-20T16:24:37.687204343Z [inf]  2026-05-20 16:24:37 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://thelumebox.com/collections/full-catalog | provider=jina
+2026-05-20T16:24:37.687210637Z [inf]  2026-05-20 16:24:37 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://thelumebox.com/products/lumebox-2-0 | provider=jina
+2026-05-20T16:24:37.717484662Z [inf]  2026-05-20 16:24:37 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=841 | output=15 | total=856
+2026-05-20T16:24:37.717491417Z [inf]  2026-05-20 16:24:37 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['Bella All Natural products', 'Bella All Natural supplements', 'Bella All Natural online shop']
+2026-05-20T16:24:37.717495430Z [inf]  2026-05-20 16:24:37 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['Bella All Natural products', 'Bella All Natural supplements', 'Bella All Natural online shop']
+2026-05-20T16:24:37.722953022Z [inf]  2026-05-20 16:24:37 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Bella%20All%20Natural%20products | provider=jina-search
+2026-05-20T16:24:37.730903738Z [inf]  2026-05-20 16:24:37 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Bella%20All%20Natural%20supplements | provider=jina-search
+2026-05-20T16:24:37.759251691Z [inf]  2026-05-20 16:24:37 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Bella%20All%20Natural%20online%20shop | provider=jina-search
+2026-05-20T16:24:37.765258835Z [inf]  2026-05-20 16:24:37 | INFO     | main | [Jina Smart] Starting pipeline with data keys: ['name', 'website', 'linkedin']
+2026-05-20T16:24:37.778125221Z [inf]  2026-05-20 16:24:37 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://liftsafety.com | provider=jina
+2026-05-20T16:24:37.796023860Z [inf]  2026-05-20 16:24:37 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://sweetlorens.com | provider=jina
+2026-05-20T16:24:37.946692400Z [inf]  2026-05-20 16:24:37 | INFO     | scraper.jina_scraper | [Jina] Scraped 7035 chars from https://hoogahealth.com/?srsltid=AfmBOoqHmStljWEJgkZocVyJlN3k1opXwHKvgGAkryIZ95iEZTiobtxv (keep_links=False)
+2026-05-20T16:24:37.946700518Z [inf]  2026-05-20 16:24:37 | INFO     | main | [Jina Smart] Cross-poll: +7035 chars from https://hoogahealth.com/?srsltid=AfmBOoq4-mm5YgaxBh-k6ikCvd_0cjfNWuR_lmJDJMqGsOllth4vWW65
+2026-05-20T16:24:37.946706521Z [inf]  2026-05-20 16:24:37 | INFO     | main | [Jina Smart] Cross-poll: +2762 chars from https://hoogahealth.com/collections/all?srsltid=AfmBOop6EZuenyx3xly2BPAinIDbocNX6zInQyhs6T6uYhJmiwL4WJjF
+2026-05-20T16:24:37.946711259Z [inf]  2026-05-20 16:24:37 | INFO     | main | [Jina Smart] Cross-poll: +7035 chars from https://hoogahealth.com/?srsltid=AfmBOoqHmStljWEJgkZocVyJlN3k1opXwHKvgGAkryIZ95iEZTiobtxv
+2026-05-20T16:24:37.946719515Z [inf]  2026-05-20 16:24:37 | INFO     | main | [Jina Smart] Combined: 7 direct + 11 search = 15 pages
+2026-05-20T16:24:37.946725148Z [inf]  2026-05-20 16:24:37 | INFO     | ai.openrouter_client | Extracting answer from 15 pages with OpenRouter (gemini-2.5-flash)
+2026-05-20T16:24:38.000665332Z [inf]  2026-05-20 16:24:37 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Bella All Natural products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Bella%20All%20Natural%20products'
+2026-05-20T16:24:38.000671617Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:38.000676280Z [inf]  2026-05-20 16:24:37 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Bella All Natural supplements': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Bella%20All%20Natural%20supplements'
+2026-05-20T16:24:38.000680640Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:38.000684821Z [inf]  2026-05-20 16:24:37 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Bella All Natural online shop': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Bella%20All%20Natural%20online%20shop'
+2026-05-20T16:24:38.000690084Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:38.000694015Z [inf]  2026-05-20 16:24:37 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['Bella All Natural products', 'Bella All Natural supplements', 'Bella All Natural online shop']
+2026-05-20T16:24:38.276476240Z [inf]  2026-05-20 16:24:38 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=extract_answer | model=gemini-2.5-flash | input=13748 | output=263 | total=14011
+2026-05-20T16:24:38.276480365Z [inf]  INFO:     100.64.0.14:53064 - "POST /scrape/jina-test HTTP/1.1" 200 OK
+2026-05-20T16:24:38.361503859Z [inf]  2026-05-20 16:24:38 | INFO     | scraper.jina_scraper | [Jina] Scraped 73099 chars from https://goflaus.com (keep_links=True)
+2026-05-20T16:24:38.361511636Z [inf]  2026-05-20 16:24:38 | INFO     | main | [Jina Smart][Track A] Homepage: 20000 chars from https://goflaus.com
+2026-05-20T16:24:38.361518353Z [inf]  2026-05-20 16:24:38 | INFO     | main | [Jina Smart][Track A] Extracted 12 internal links from homepage
+2026-05-20T16:24:38.491312626Z [inf]  2026-05-20 16:24:38 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=826 | output=18 | total=844
+2026-05-20T16:24:38.491318841Z [inf]  2026-05-20 16:24:38 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['Davids Health Sciences products', 'Davids USA natural products', 'Davids Health Sciences online shop']
+2026-05-20T16:24:38.491324264Z [inf]  2026-05-20 16:24:38 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['Davids Health Sciences products', 'Davids USA natural products', 'Davids Health Sciences online shop']
+2026-05-20T16:24:38.491329905Z [inf]  2026-05-20 16:24:38 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=830 | output=20 | total=850
+2026-05-20T16:24:38.491334064Z [inf]  2026-05-20 16:24:38 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['MODO Eyewear products', 'MODO Eyewear glasses', 'MODO Eyewear online']
+2026-05-20T16:24:38.491338168Z [inf]  2026-05-20 16:24:38 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['MODO Eyewear products', 'MODO Eyewear glasses', 'MODO Eyewear online']
+2026-05-20T16:24:38.497446916Z [inf]  2026-05-20 16:24:38 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Davids%20Health%20Sciences%20products | provider=jina-search
+2026-05-20T16:24:38.509833948Z [inf]  2026-05-20 16:24:38 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Davids%20USA%20natural%20products | provider=jina-search
+2026-05-20T16:24:38.511193440Z [inf]  2026-05-20 16:24:38 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Davids%20Health%20Sciences%20online%20shop | provider=jina-search
+2026-05-20T16:24:38.517985958Z [inf]  2026-05-20 16:24:38 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=MODO%20Eyewear%20products | provider=jina-search
+2026-05-20T16:24:38.523811451Z [inf]  2026-05-20 16:24:38 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=MODO%20Eyewear%20glasses | provider=jina-search
+2026-05-20T16:24:38.536002738Z [inf]  2026-05-20 16:24:38 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=MODO%20Eyewear%20online | provider=jina-search
+2026-05-20T16:24:38.547771813Z [inf]  2026-05-20 16:24:38 | INFO     | scraper.jina_scraper | [Jina] Scraped 1429 chars from https://www.legendairymilk.com/pages/product-comparison?srsltid=AfmBOoox8J6c1sSU3qJ-Qi-W-ehO6l2h0NtwwLB6ZKp32Xv3il0bUnrZ (keep_links=False)
+2026-05-20T16:24:38.547781385Z [inf]  2026-05-20 16:24:38 | INFO     | main | [Jina Smart] Cross-poll: +17472 chars from https://www.legendairymilk.com/collections/lactation-supplements?srsltid=AfmBOopdeaqqhWVsEWx7gucNmJ5KZpZkYa2bDzs_oJlhUuftp2mAqXLG
+2026-05-20T16:24:38.547789418Z [inf]  2026-05-20 16:24:38 | INFO     | main | [Jina Smart] Cross-poll: +20000 chars from https://www.legendairymilk.com/collections/all?srsltid=AfmBOooWodkOqyf5ZiP_TB4WwzWIW44tgj8fulpWYv9Gm-XE80aiCqYs
+2026-05-20T16:24:38.547796007Z [inf]  2026-05-20 16:24:38 | INFO     | main | [Jina Smart] Cross-poll: +1429 chars from https://www.legendairymilk.com/pages/product-comparison?srsltid=AfmBOoox8J6c1sSU3qJ-Qi-W-ehO6l2h0NtwwLB6ZKp32Xv3il0bUnrZ
+2026-05-20T16:24:38.547803376Z [inf]  2026-05-20 16:24:38 | INFO     | main | [Jina Smart] Combined: 4 direct + 14 search = 15 pages
+2026-05-20T16:24:38.547809557Z [inf]  2026-05-20 16:24:38 | INFO     | ai.openrouter_client | Extracting answer from 15 pages with OpenRouter (gemini-2.5-flash)
+2026-05-20T16:24:38.682169685Z [inf]  2026-05-20 16:24:38 | INFO     | ai.openrouter_client | Extracting answer from 1 pages with OpenRouter (gemini-2.5-flash)
+2026-05-20T16:24:38.682264019Z [inf]  2026-05-20 16:24:38 | INFO     | scraper.jina_scraper | [Jina] Scraped 161 chars from https://www.byte.com (keep_links=True)
+2026-05-20T16:24:38.682268555Z [inf]  2026-05-20 16:24:38 | INFO     | main | [Jina Smart][Track A] Homepage: 161 chars from https://www.byte.com
+2026-05-20T16:24:38.682273269Z [inf]  2026-05-20 16:24:38 | INFO     | main | [Jina Smart][Track A] Extracted 0 internal links from homepage
+2026-05-20T16:24:38.682277962Z [inf]  2026-05-20 16:24:38 | INFO     | main | [Jina Smart] Combined: 1 direct + 0 search = 1 pages
+2026-05-20T16:24:38.736722652Z [inf]  2026-05-20 16:24:38 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Davids Health Sciences products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Davids%20Health%20Sciences%20products'
+2026-05-20T16:24:38.736728923Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:38.736734765Z [inf]  2026-05-20 16:24:38 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Davids USA natural products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Davids%20USA%20natural%20products'
+2026-05-20T16:24:38.736740476Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:38.736746597Z [inf]  2026-05-20 16:24:38 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Davids Health Sciences online shop': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Davids%20Health%20Sciences%20online%20shop'
+2026-05-20T16:24:38.736753062Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:38.736759023Z [inf]  2026-05-20 16:24:38 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['Davids Health Sciences products', 'Davids USA natural products', 'Davids Health Sciences online shop']
+2026-05-20T16:24:38.742338382Z [inf]  2026-05-20 16:24:38 | WARNING  | main | [Jina Smart][Track B] Search failed for 'MODO Eyewear products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=MODO%20Eyewear%20products'
+2026-05-20T16:24:38.742345118Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:38.742349529Z [inf]  2026-05-20 16:24:38 | WARNING  | main | [Jina Smart][Track B] Search failed for 'MODO Eyewear glasses': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=MODO%20Eyewear%20glasses'
+2026-05-20T16:24:38.742353894Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:38.742359095Z [inf]  2026-05-20 16:24:38 | WARNING  | main | [Jina Smart][Track B] Search failed for 'MODO Eyewear online': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=MODO%20Eyewear%20online'
+2026-05-20T16:24:38.742363362Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:38.742369089Z [inf]  2026-05-20 16:24:38 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['MODO Eyewear products', 'MODO Eyewear glasses', 'MODO Eyewear online']
+2026-05-20T16:24:38.772143786Z [inf]  2026-05-20 16:24:38 | INFO     | scraper.jina_scraper | [Jina] Scraped 21820 chars from https://hugsleep.com (keep_links=True)
+2026-05-20T16:24:38.772150309Z [inf]  2026-05-20 16:24:38 | INFO     | main | [Jina Smart][Track A] Homepage: 20000 chars from https://hugsleep.com
+2026-05-20T16:24:38.772155405Z [inf]  2026-05-20 16:24:38 | INFO     | main | [Jina Smart][Track A] Extracted 0 internal links from homepage
+2026-05-20T16:24:38.772159798Z [inf]  2026-05-20 16:24:38 | INFO     | main | [Jina Smart] Combined: 1 direct + 0 search = 1 pages
+2026-05-20T16:24:38.772163949Z [inf]  2026-05-20 16:24:38 | INFO     | ai.openrouter_client | Extracting answer from 1 pages with OpenRouter (gemini-2.5-flash)
+2026-05-20T16:24:38.777920233Z [inf]  2026-05-20 16:24:38 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=pick_relevant_links | model=gemini-2.5-flash | input=663 | output=44 | total=707
+2026-05-20T16:24:38.777926860Z [inf]  2026-05-20 16:24:38 | INFO     | ai.openrouter_client | [AI] Picked 2 relevant link(s) from 3: ['https://elsenutrition.com/collections/toddler-products', 'https://elsenutrition.com/collections/kids-products']
+2026-05-20T16:24:38.790222409Z [inf]  2026-05-20 16:24:38 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://elsenutrition.com/collections/toddler-products | provider=jina
+2026-05-20T16:24:38.796341903Z [inf]  2026-05-20 16:24:38 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://elsenutrition.com/collections/kids-products | provider=jina
+2026-05-20T16:24:38.809597599Z [inf]  2026-05-20 16:24:38 | INFO     | main | [Jina Smart] Cross-poll: +8091 chars from https://parcilsafety.com/?srsltid=AfmBOop1N6wwDGSu9nUrreANz5aDP_4HcACaFjVSDn8FTwZ4HzU9-jId
+2026-05-20T16:24:38.809604471Z [inf]  2026-05-20 16:24:38 | WARNING  | main | [Jina Smart] Cross-poll scrape failed for https://parcilsafety.com/?srsltid=AfmBOop_qYHvmD6Ly2dEON-MZrGRYGu1shb48XV0drnkg2ZnrrvO4V6Q: 
+2026-05-20T16:24:38.809611020Z [inf]  2026-05-20 16:24:38 | WARNING  | main | [Jina Smart] Cross-poll scrape failed for https://parcilsafety.com/pages/resources?srsltid=AfmBOortKxirELFz6eC03vvs87rAiHC-oGnNfrSXk_BsRXchYFL7C7b8: 
+2026-05-20T16:24:38.809616089Z [inf]  2026-05-20 16:24:38 | INFO     | main | [Jina Smart] Combined: 2 direct + 12 search = 13 pages
+2026-05-20T16:24:38.809620368Z [inf]  2026-05-20 16:24:38 | INFO     | ai.openrouter_client | Extracting answer from 13 pages with OpenRouter (gemini-2.5-flash)
+2026-05-20T16:24:38.829885476Z [inf]  2026-05-20 16:24:38 | INFO     | main | [Jina Smart] Starting pipeline with data keys: ['name', 'website', 'linkedin']
+2026-05-20T16:24:38.850002916Z [inf]  2026-05-20 16:24:38 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://axonoptics.com | provider=jina
+2026-05-20T16:24:39.021580079Z [inf]  2026-05-20 16:24:39 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=extract_answer | model=gemini-2.5-flash | input=14586 | output=271 | total=14857
+2026-05-20T16:24:39.021586527Z [inf]  INFO:     100.64.0.3:62728 - "POST /scrape/jina-test HTTP/1.1" 200 OK
+2026-05-20T16:24:39.115378470Z [inf]  2026-05-20 16:24:39 | WARNING  | main | [Jina Smart][Track A] Hit 18.0s deadline — using whatever Track B has
+2026-05-20T16:24:39.115385830Z [inf]  2026-05-20 16:24:39 | WARNING  | main | [Jina Smart] Both tracks returned no content — returning NOTFOUND
+2026-05-20T16:24:39.115390513Z [inf]  2026-05-20 16:24:39 | WARNING  | main | [Jina Smart] Attempt 1/2 returned NOTFOUND — retrying...
+2026-05-20T16:24:39.192551866Z [inf]  2026-05-20 16:24:39 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=extract_answer | model=gemini-2.5-flash | input=9338 | output=137 | total=9475
+2026-05-20T16:24:39.192559415Z [inf]  INFO:     100.64.0.24:33590 - "POST /scrape/jina-test HTTP/1.1" 200 OK
+2026-05-20T16:24:39.242787224Z [inf]  2026-05-20 16:24:39 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://www.recoveryfirefly.com | provider=jina
+2026-05-20T16:24:39.301737140Z [inf]  2026-05-20 16:24:39 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=828 | output=16 | total=844
+2026-05-20T16:24:39.301743824Z [inf]  2026-05-20 16:24:39 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['LIFT Safety products', 'LIFT Safety safety equipment', 'LIFT Safety online shop']
+2026-05-20T16:24:39.301749880Z [inf]  2026-05-20 16:24:39 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['LIFT Safety products', 'LIFT Safety safety equipment', 'LIFT Safety online shop']
+2026-05-20T16:24:39.307305624Z [inf]  2026-05-20 16:24:39 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=LIFT%20Safety%20products | provider=jina-search
+2026-05-20T16:24:39.313121234Z [inf]  2026-05-20 16:24:39 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=LIFT%20Safety%20safety%20equipment | provider=jina-search
+2026-05-20T16:24:39.319548075Z [inf]  2026-05-20 16:24:39 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=LIFT%20Safety%20online%20shop | provider=jina-search
+2026-05-20T16:24:39.347429859Z [inf]  2026-05-20 16:24:39 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://ketone.com | provider=jina
+2026-05-20T16:24:39.676641801Z [inf]  2026-05-20 16:24:39 | WARNING  | main | [Jina Smart][Track B] Search failed for 'LIFT Safety safety equipment': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=LIFT%20Safety%20safety%20equipment'
+2026-05-20T16:24:39.676654351Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:39.676663370Z [inf]  2026-05-20 16:24:39 | WARNING  | main | [Jina Smart][Track B] Search failed for 'LIFT Safety online shop': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=LIFT%20Safety%20online%20shop'
+2026-05-20T16:24:39.676671430Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:39.676679009Z [inf]  2026-05-20 16:24:39 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['LIFT Safety products', 'LIFT Safety safety equipment', 'LIFT Safety online shop']
+2026-05-20T16:24:39.676686601Z [inf]  2026-05-20 16:24:39 | INFO     | main | [Jina Smart] Starting pipeline with data keys: ['name', 'website']
+2026-05-20T16:24:39.676694192Z [inf]  2026-05-20 16:24:39 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://theenhancedmale.com | provider=jina
+2026-05-20T16:24:39.676711837Z [inf]  2026-05-20 16:24:39 | WARNING  | main | [Jina Smart][Track B] Search failed for 'LIFT Safety products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=LIFT%20Safety%20products'
+2026-05-20T16:24:39.676716081Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:39.690414048Z [inf]  2026-05-20 16:24:39 | INFO     | main | [Jina Smart] Starting pipeline with data keys: ['name', 'website', 'linkedin']
+2026-05-20T16:24:39.702850133Z [inf]  2026-05-20 16:24:39 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://apolloneuro.com | provider=jina
+2026-05-20T16:24:39.863053330Z [inf]  2026-05-20 16:24:39 | INFO     | scraper.jina_scraper | [Jina] Scraped 37199 chars from https://ketone.com (keep_links=True)
+2026-05-20T16:24:39.863062049Z [inf]  2026-05-20 16:24:39 | INFO     | main | [Jina Smart][Track A] Homepage: 20000 chars from https://ketone.com
+2026-05-20T16:24:39.863068821Z [inf]  2026-05-20 16:24:39 | INFO     | main | [Jina Smart][Track A] Extracted 10 internal links from homepage
+2026-05-20T16:24:39.925383536Z [inf]  2026-05-20 16:24:39 | INFO     | main | [Jina Smart] Starting pipeline with data keys: ['name', 'website']
+2026-05-20T16:24:39.937444644Z [inf]  2026-05-20 16:24:39 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://skynfeel.com | provider=jina
+2026-05-20T16:24:40.491880150Z [inf]  2026-05-20 16:24:40 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=extract_answer | model=gemini-2.5-flash | input=10213 | output=357 | total=10570
+2026-05-20T16:24:40.491885412Z [inf]  INFO:     100.64.0.8:22252 - "POST /scrape/jina-test HTTP/1.1" 200 OK
+2026-05-20T16:24:40.682201799Z [inf]  2026-05-20 16:24:40 | WARNING  | main | [Jina Smart][Track A] Hit 18.0s deadline — using whatever Track B has
+2026-05-20T16:24:40.682207814Z [inf]  2026-05-20 16:24:40 | WARNING  | main | [Jina Smart] Both tracks returned no content — returning NOTFOUND
+2026-05-20T16:24:40.682213080Z [inf]  2026-05-20 16:24:40 | WARNING  | main | [Jina Smart] Attempt 1/2 returned NOTFOUND — retrying...
+2026-05-20T16:24:40.682218160Z [inf]  2026-05-20 16:24:40 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://wearwellow.com | provider=jina
+2026-05-20T16:24:40.682224092Z [inf]  2026-05-20 16:24:40 | INFO     | main | [Jina Smart] Starting pipeline with data keys: ['name', 'website', 'linkedin']
+2026-05-20T16:24:40.682229907Z [inf]  2026-05-20 16:24:40 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://amazinggrass.com | provider=jina
+2026-05-20T16:24:40.682235235Z [inf]  2026-05-20 16:24:40 | INFO     | main | [Jina Smart] Starting pipeline with data keys: ['name', 'website', 'linkedin']
+2026-05-20T16:24:40.682240497Z [inf]  2026-05-20 16:24:40 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://mixhers.com | provider=jina
+2026-05-20T16:24:40.682246332Z [inf]  2026-05-20 16:24:40 | INFO     | scraper.jina_scraper | [Jina] Scraped 6188 chars from https://daiyafoods.com (keep_links=True)
+2026-05-20T16:24:40.682253841Z [inf]  2026-05-20 16:24:40 | INFO     | main | [Jina Smart][Track A] Homepage: 6188 chars from https://daiyafoods.com
+2026-05-20T16:24:40.682258707Z [inf]  2026-05-20 16:24:40 | INFO     | main | [Jina Smart][Track A] Extracted 3 internal links from homepage
+2026-05-20T16:24:40.765048364Z [inf]  2026-05-20 16:24:40 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=833 | output=15 | total=848
+2026-05-20T16:24:40.765054464Z [inf]  2026-05-20 16:24:40 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['Axon Optics products', 'Axon Optics glasses', 'Axon Optics online shop']
+2026-05-20T16:24:40.765060028Z [inf]  2026-05-20 16:24:40 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['Axon Optics products', 'Axon Optics glasses', 'Axon Optics online shop']
+2026-05-20T16:24:40.770883535Z [inf]  2026-05-20 16:24:40 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Axon%20Optics%20products | provider=jina-search
+2026-05-20T16:24:40.776693184Z [inf]  2026-05-20 16:24:40 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Axon%20Optics%20glasses | provider=jina-search
+2026-05-20T16:24:40.782717791Z [inf]  2026-05-20 16:24:40 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Axon%20Optics%20online%20shop | provider=jina-search
+2026-05-20T16:24:40.824157366Z [inf]  2026-05-20 16:24:40 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=extract_answer | model=gemini-2.5-flash | input=692 | output=83 | total=775
+2026-05-20T16:24:40.824165867Z [inf]  INFO:     100.64.0.15:38768 - "POST /scrape/jina-test HTTP/1.1" 200 OK
+2026-05-20T16:24:40.824173329Z [inf]  2026-05-20 16:24:40 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=836 | output=16 | total=852
+2026-05-20T16:24:40.824179216Z [inf]  2026-05-20 16:24:40 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['Firefly Recovery products', 'Firefly Recovery recovery devices', 'Firefly Recovery online store']
+2026-05-20T16:24:40.824184693Z [inf]  2026-05-20 16:24:40 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['Firefly Recovery products', 'Firefly Recovery recovery devices', 'Firefly Recovery online store']
+2026-05-20T16:24:40.829758914Z [inf]  2026-05-20 16:24:40 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Firefly%20Recovery%20products | provider=jina-search
+2026-05-20T16:24:40.836814975Z [inf]  2026-05-20 16:24:40 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Firefly%20Recovery%20recovery%20devices | provider=jina-search
+2026-05-20T16:24:40.844114885Z [inf]  2026-05-20 16:24:40 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Firefly%20Recovery%20online%20store | provider=jina-search
+2026-05-20T16:24:40.855980318Z [inf]  2026-05-20 16:24:40 | WARNING  | scraper.jina_scraper | [Jina] Failed for https://thedopestshop.com: 
+2026-05-20T16:24:40.857337900Z [inf]  2026-05-20 16:24:40 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://www.thedopestshop.com | provider=jina
+2026-05-20T16:24:40.937861135Z [inf]  2026-05-20 16:24:40 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=extract_answer | model=gemini-2.5-flash | input=14478 | output=217 | total=14695
+2026-05-20T16:24:40.939155449Z [inf]  INFO:     100.64.0.15:57398 - "POST /scrape/jina-test HTTP/1.1" 200 OK
+2026-05-20T16:24:40.976557841Z [inf]  2026-05-20 16:24:40 | INFO     | main | [Jina Smart] Starting pipeline with data keys: ['name', 'website', 'linkedin']
+2026-05-20T16:24:40.988647450Z [inf]  2026-05-20 16:24:40 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://rehab2perform.com | provider=jina
+2026-05-20T16:24:41.008062729Z [inf]  2026-05-20 16:24:41 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Axon Optics products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Axon%20Optics%20products'
+2026-05-20T16:24:41.008067375Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:41.008071946Z [inf]  2026-05-20 16:24:41 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Axon Optics glasses': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Axon%20Optics%20glasses'
+2026-05-20T16:24:41.008076917Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:41.008081348Z [inf]  2026-05-20 16:24:41 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Axon Optics online shop': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Axon%20Optics%20online%20shop'
+2026-05-20T16:24:41.008085764Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:41.008090543Z [inf]  2026-05-20 16:24:41 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['Axon Optics products', 'Axon Optics glasses', 'Axon Optics online shop']
+2026-05-20T16:24:41.042655983Z [inf]  2026-05-20 16:24:41 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Firefly Recovery products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Firefly%20Recovery%20products'
+2026-05-20T16:24:41.042662067Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:41.042666846Z [inf]  2026-05-20 16:24:41 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Firefly Recovery recovery devices': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Firefly%20Recovery%20recovery%20devices'
+2026-05-20T16:24:41.042671435Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:41.042676464Z [inf]  2026-05-20 16:24:41 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Firefly Recovery online store': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Firefly%20Recovery%20online%20store'
+2026-05-20T16:24:41.042681446Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:41.042686230Z [inf]  2026-05-20 16:24:41 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['Firefly Recovery products', 'Firefly Recovery recovery devices', 'Firefly Recovery online store']
+2026-05-20T16:24:41.053950807Z [inf]  2026-05-20 16:24:41 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=pick_relevant_links | model=gemini-2.5-flash | input=1734 | output=55 | total=1789
+2026-05-20T16:24:41.053955792Z [inf]  2026-05-20 16:24:41 | INFO     | ai.openrouter_client | [AI] Picked 2 relevant link(s) from 53: ['https://boncharge.com/collections', 'https://boncharge.com/pages/about-us']
+2026-05-20T16:24:41.065854527Z [inf]  2026-05-20 16:24:41 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://boncharge.com/collections | provider=jina
+2026-05-20T16:24:41.067266338Z [inf]  2026-05-20 16:24:41 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://boncharge.com/pages/about-us | provider=jina
+2026-05-20T16:24:41.171651128Z [inf]  2026-05-20 16:24:41 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=835 | output=19 | total=854
+2026-05-20T16:24:41.171656915Z [inf]  2026-05-20 16:24:41 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['Ketone-IQ products', 'Ketone-IQ ketone supplements', 'Ketone-IQ online store']
+2026-05-20T16:24:41.171662296Z [inf]  2026-05-20 16:24:41 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['Ketone-IQ products', 'Ketone-IQ ketone supplements', 'Ketone-IQ online store']
+2026-05-20T16:24:41.177829478Z [inf]  2026-05-20 16:24:41 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Ketone-IQ%20products | provider=jina-search
+2026-05-20T16:24:41.184102803Z [inf]  2026-05-20 16:24:41 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Ketone-IQ%20ketone%20supplements | provider=jina-search
+2026-05-20T16:24:41.191683377Z [inf]  2026-05-20 16:24:41 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Ketone-IQ%20online%20store | provider=jina-search
+2026-05-20T16:24:41.193061366Z [inf]  2026-05-20 16:24:41 | INFO     | scraper.jina_scraper | [Jina] Scraped 24652 chars from https://wearwellow.com (keep_links=True)
+2026-05-20T16:24:41.193067036Z [inf]  2026-05-20 16:24:41 | INFO     | main | [Jina Smart][Track A] Homepage: 20000 chars from https://wearwellow.com
+2026-05-20T16:24:41.198997056Z [inf]  2026-05-20 16:24:41 | INFO     | main | [Jina Smart][Track A] Extracted 36 internal links from homepage
+2026-05-20T16:24:41.216298936Z [inf]  2026-05-20 16:24:41 | WARNING  | main | [Jina Smart][Track A] Hit 18.0s deadline — using whatever Track B has
+2026-05-20T16:24:41.216307211Z [inf]  2026-05-20 16:24:41 | WARNING  | main | [Jina Smart] Both tracks returned no content — returning NOTFOUND
+2026-05-20T16:24:41.216313497Z [inf]  2026-05-20 16:24:41 | WARNING  | main | [Jina Smart] Attempt 1/2 returned NOTFOUND — retrying...
+2026-05-20T16:24:41.243357297Z [inf]  2026-05-20 16:24:41 | INFO     | scraper.jina_scraper | [Jina] Scraped 21418 chars from https://eviering.com (keep_links=True)
+2026-05-20T16:24:41.243364685Z [inf]  2026-05-20 16:24:41 | INFO     | main | [Jina Smart][Track A] Homepage: 20000 chars from https://eviering.com
+2026-05-20T16:24:41.243370827Z [inf]  2026-05-20 16:24:41 | INFO     | main | [Jina Smart][Track A] Extracted 11 internal links from homepage
+2026-05-20T16:24:41.355561288Z [inf]  2026-05-20 16:24:41 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=extract_answer | model=gemini-2.5-flash | input=14929 | output=366 | total=15295
+2026-05-20T16:24:41.355568501Z [inf]  INFO:     100.64.0.8:53614 - "POST /scrape/jina-test HTTP/1.1" 200 OK
+2026-05-20T16:24:41.355573667Z [inf]  2026-05-20 16:24:41 | INFO     | scraper.jina_scraper | [Jina] Scraped 11876 chars from https://vellabio.com/pages/science-behind-female-arousal (keep_links=False)
+2026-05-20T16:24:41.413317147Z [inf]  2026-05-20 16:24:41 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Ketone-IQ products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Ketone-IQ%20products'
+2026-05-20T16:24:41.413328705Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:41.413335249Z [inf]  2026-05-20 16:24:41 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Ketone-IQ ketone supplements': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Ketone-IQ%20ketone%20supplements'
+2026-05-20T16:24:41.413340251Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:41.413344703Z [inf]  2026-05-20 16:24:41 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Ketone-IQ online store': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Ketone-IQ%20online%20store'
+2026-05-20T16:24:41.413349517Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:41.413353962Z [inf]  2026-05-20 16:24:41 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['Ketone-IQ products', 'Ketone-IQ ketone supplements', 'Ketone-IQ online store']
+2026-05-20T16:24:41.498413896Z [inf]  2026-05-20 16:24:41 | INFO     | main | [Jina Smart] Starting pipeline with data keys: ['name', 'website', 'linkedin']
+2026-05-20T16:24:41.504772324Z [inf]  2026-05-20 16:24:41 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://gloscience.com | provider=jina
+2026-05-20T16:24:41.523364550Z [inf]  2026-05-20 16:24:41 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=820 | output=15 | total=835
+2026-05-20T16:24:41.523371199Z [inf]  2026-05-20 16:24:41 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['theenhancedmale products', 'theenhancedmale male health', 'theenhancedmale website']
+2026-05-20T16:24:41.523375555Z [inf]  2026-05-20 16:24:41 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['theenhancedmale products', 'theenhancedmale male health', 'theenhancedmale website']
+2026-05-20T16:24:41.535580262Z [inf]  2026-05-20 16:24:41 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=theenhancedmale%20products | provider=jina-search
+2026-05-20T16:24:41.541466615Z [inf]  2026-05-20 16:24:41 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=theenhancedmale%20male%20health | provider=jina-search
+2026-05-20T16:24:41.548478100Z [inf]  2026-05-20 16:24:41 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=theenhancedmale%20website | provider=jina-search
+2026-05-20T16:24:41.689186248Z [inf]  2026-05-20 16:24:41 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=extract_answer | model=gemini-2.5-flash | input=22109 | output=302 | total=22411
+2026-05-20T16:24:41.689192375Z [inf]  INFO:     100.64.0.21:44054 - "POST /scrape/jina-test HTTP/1.1" 200 OK
+2026-05-20T16:24:41.752576370Z [inf]  2026-05-20 16:24:41 | WARNING  | main | [Jina Smart][Track B] Search failed for 'theenhancedmale products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=theenhancedmale%20products'
+2026-05-20T16:24:41.752585752Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:41.752592251Z [inf]  2026-05-20 16:24:41 | WARNING  | main | [Jina Smart][Track B] Search failed for 'theenhancedmale male health': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=theenhancedmale%20male%20health'
+2026-05-20T16:24:41.752599271Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:41.752605218Z [inf]  2026-05-20 16:24:41 | WARNING  | main | [Jina Smart][Track B] Search failed for 'theenhancedmale website': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=theenhancedmale%20website'
+2026-05-20T16:24:41.752609983Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:41.752614656Z [inf]  2026-05-20 16:24:41 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['theenhancedmale products', 'theenhancedmale male health', 'theenhancedmale website']
+2026-05-20T16:24:41.753900320Z [inf]  2026-05-20 16:24:41 | INFO     | scraper.jina_scraper | [Jina] Scraped 3051 chars from https://idealnutritionnow.com/pages/about-us (keep_links=False)
+2026-05-20T16:24:41.817302560Z [inf]  2026-05-20 16:24:41 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=830 | output=12 | total=842
+2026-05-20T16:24:41.817307349Z [inf]  2026-05-20 16:24:41 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['Wellow clothing', 'Wellow apparel', 'Wellow online store']
+2026-05-20T16:24:41.817311758Z [inf]  2026-05-20 16:24:41 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['Wellow clothing', 'Wellow apparel', 'Wellow online store']
+2026-05-20T16:24:41.821809976Z [inf]  2026-05-20 16:24:41 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Wellow%20clothing | provider=jina-search
+2026-05-20T16:24:41.834072902Z [inf]  2026-05-20 16:24:41 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Wellow%20apparel | provider=jina-search
+2026-05-20T16:24:41.835204239Z [inf]  2026-05-20 16:24:41 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Wellow%20online%20store | provider=jina-search
+2026-05-20T16:24:41.836524466Z [inf]  2026-05-20 16:24:41 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=818 | output=15 | total=833
+2026-05-20T16:24:41.836532194Z [inf]  2026-05-20 16:24:41 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['SKYN US products', 'SKYN US condoms', 'SKYN US online shop']
+2026-05-20T16:24:41.837875257Z [inf]  2026-05-20 16:24:41 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['SKYN US products', 'SKYN US condoms', 'SKYN US online shop']
+2026-05-20T16:24:41.843779635Z [inf]  2026-05-20 16:24:41 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=SKYN%20US%20products | provider=jina-search
+2026-05-20T16:24:41.849494365Z [inf]  2026-05-20 16:24:41 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=SKYN%20US%20condoms | provider=jina-search
+2026-05-20T16:24:41.856538617Z [inf]  2026-05-20 16:24:41 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=SKYN%20US%20online%20shop | provider=jina-search
+2026-05-20T16:24:41.863809552Z [inf]  2026-05-20 16:24:41 | INFO     | scraper.jina_scraper | [Jina] Scraped 6483 chars from https://www.arrae.com (keep_links=True)
+2026-05-20T16:24:41.865208706Z [inf]  2026-05-20 16:24:41 | INFO     | main | [Jina Smart][Track A] Homepage: 6483 chars from https://www.arrae.com
+2026-05-20T16:24:41.865214415Z [inf]  2026-05-20 16:24:41 | INFO     | main | [Jina Smart][Track A] Extracted 6 internal links from homepage
+2026-05-20T16:24:42.068242140Z [inf]  2026-05-20 16:24:42 | WARNING  | main | [Jina Smart][Track B] Search failed for 'SKYN US products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=SKYN%20US%20products'
+2026-05-20T16:24:42.068251821Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:42.068259962Z [inf]  2026-05-20 16:24:42 | WARNING  | main | [Jina Smart][Track B] Search failed for 'SKYN US condoms': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=SKYN%20US%20condoms'
+2026-05-20T16:24:42.068268370Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:42.068277608Z [inf]  2026-05-20 16:24:42 | WARNING  | main | [Jina Smart][Track B] Search failed for 'SKYN US online shop': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=SKYN%20US%20online%20shop'
+2026-05-20T16:24:42.068284850Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:42.068292302Z [inf]  2026-05-20 16:24:42 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['SKYN US products', 'SKYN US condoms', 'SKYN US online shop']
+2026-05-20T16:24:42.068300466Z [inf]  2026-05-20 16:24:42 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Wellow clothing': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Wellow%20clothing'
+2026-05-20T16:24:42.068309329Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:42.068317132Z [inf]  2026-05-20 16:24:42 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Wellow apparel': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Wellow%20apparel'
+2026-05-20T16:24:42.068324948Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:42.068332057Z [inf]  2026-05-20 16:24:42 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Wellow online store': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Wellow%20online%20store'
+2026-05-20T16:24:42.069321978Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:42.069329328Z [inf]  2026-05-20 16:24:42 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['Wellow clothing', 'Wellow apparel', 'Wellow online store']
+2026-05-20T16:24:42.216435089Z [inf]  2026-05-20 16:24:42 | WARNING  | main | [Jina Smart][Track A] Hit 18.0s deadline — using whatever Track B has
+2026-05-20T16:24:42.216444093Z [inf]  2026-05-20 16:24:42 | WARNING  | main | [Jina Smart] Both tracks returned no content — returning NOTFOUND
+2026-05-20T16:24:42.216450712Z [inf]  2026-05-20 16:24:42 | WARNING  | main | [Jina Smart] Attempt 1/2 returned NOTFOUND — retrying...
+2026-05-20T16:24:42.351071985Z [inf]  2026-05-20 16:24:42 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=828 | output=12 | total=840
+2026-05-20T16:24:42.351077838Z [inf]  2026-05-20 16:24:42 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['Amazing Grass products', 'Amazing Grass greens powder', 'Amazing Grass supplements']
+2026-05-20T16:24:42.351082096Z [inf]  2026-05-20 16:24:42 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['Amazing Grass products', 'Amazing Grass greens powder', 'Amazing Grass supplements']
+2026-05-20T16:24:42.358718327Z [inf]  2026-05-20 16:24:42 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Amazing%20Grass%20products | provider=jina-search
+2026-05-20T16:24:42.364992379Z [inf]  2026-05-20 16:24:42 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Amazing%20Grass%20greens%20powder | provider=jina-search
+2026-05-20T16:24:42.376811408Z [inf]  2026-05-20 16:24:42 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Amazing%20Grass%20supplements | provider=jina-search
+2026-05-20T16:24:42.391374051Z [inf]  2026-05-20 16:24:42 | INFO     | main | [Jina Smart] Starting pipeline with data keys: ['name', 'website', 'linkedin']
+2026-05-20T16:24:42.411253232Z [inf]  2026-05-20 16:24:42 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://partakefoods.com | provider=jina
+2026-05-20T16:24:42.692025192Z [inf]  2026-05-20 16:24:42 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=extract_answer | model=gemini-2.5-flash | input=12132 | output=332 | total=12464
+2026-05-20T16:24:42.692029959Z [inf]  INFO:     100.64.0.18:22076 - "POST /scrape/jina-test HTTP/1.1" 200 OK
+2026-05-20T16:24:42.692036512Z [inf]  2026-05-20 16:24:42 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Amazing Grass products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Amazing%20Grass%20products'
+2026-05-20T16:24:42.692041010Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:42.692046174Z [inf]  2026-05-20 16:24:42 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Amazing Grass greens powder': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Amazing%20Grass%20greens%20powder'
+2026-05-20T16:24:42.692051454Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:42.692055909Z [inf]  2026-05-20 16:24:42 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Amazing Grass supplements': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Amazing%20Grass%20supplements'
+2026-05-20T16:24:42.692060366Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:42.692065307Z [inf]  2026-05-20 16:24:42 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['Amazing Grass products', 'Amazing Grass greens powder', 'Amazing Grass supplements']
+2026-05-20T16:24:42.776927873Z [inf]  2026-05-20 16:24:42 | INFO     | main | [Jina Smart] Starting pipeline with data keys: ['name', 'website', 'linkedin']
+2026-05-20T16:24:42.800605497Z [inf]  2026-05-20 16:24:42 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://www.hilma.co | provider=jina
+2026-05-20T16:24:42.812826401Z [inf]  2026-05-20 16:24:42 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=832 | output=12 | total=844
+2026-05-20T16:24:42.812833630Z [inf]  2026-05-20 16:24:42 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['Apollo Neuro products', 'Apollo Neuro device', 'Apollo Neuro online store']
+2026-05-20T16:24:42.812840208Z [inf]  2026-05-20 16:24:42 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['Apollo Neuro products', 'Apollo Neuro device', 'Apollo Neuro online store']
+2026-05-20T16:24:42.819391968Z [inf]  2026-05-20 16:24:42 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Apollo%20Neuro%20products | provider=jina-search
+2026-05-20T16:24:42.825907725Z [inf]  2026-05-20 16:24:42 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Apollo%20Neuro%20device | provider=jina-search
+2026-05-20T16:24:42.838240206Z [inf]  2026-05-20 16:24:42 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Apollo%20Neuro%20online%20store | provider=jina-search
+2026-05-20T16:24:42.843840683Z [inf]  2026-05-20 16:24:42 | INFO     | scraper.jina_scraper | [Jina] Scraped 910 chars from https://vellabio.com/collections/female-arousal-products/category_bundle_&_kits (keep_links=False)
+2026-05-20T16:24:42.843846914Z [inf]  2026-05-20 16:24:42 | INFO     | main | [Jina Smart][Track A] Subpage: 2257 chars from https://vellabio.com/collections/female-arousal-products
+2026-05-20T16:24:42.843851568Z [inf]  2026-05-20 16:24:42 | INFO     | main | [Jina Smart][Track A] Subpage: 11876 chars from https://vellabio.com/pages/science-behind-female-arousal
+2026-05-20T16:24:42.843855801Z [inf]  2026-05-20 16:24:42 | INFO     | main | [Jina Smart][Track A] Subpage: 910 chars from https://vellabio.com/collections/female-arousal-products/category_bundle_&_kits
+2026-05-20T16:24:42.843860236Z [inf]  2026-05-20 16:24:42 | INFO     | main | [Jina Smart] Combined: 4 direct + 0 search = 4 pages
+2026-05-20T16:24:42.843864199Z [inf]  2026-05-20 16:24:42 | INFO     | ai.openrouter_client | Extracting answer from 4 pages with OpenRouter (gemini-2.5-flash)
+2026-05-20T16:24:43.023546602Z [inf]  2026-05-20 16:24:43 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Apollo Neuro products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Apollo%20Neuro%20products'
+2026-05-20T16:24:43.023552708Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:43.023558004Z [inf]  2026-05-20 16:24:43 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Apollo Neuro device': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Apollo%20Neuro%20device'
+2026-05-20T16:24:43.023562154Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:43.023567729Z [inf]  2026-05-20 16:24:43 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Apollo Neuro online store': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Apollo%20Neuro%20online%20store'
+2026-05-20T16:24:43.023571703Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:43.023576588Z [inf]  2026-05-20 16:24:43 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['Apollo Neuro products', 'Apollo Neuro device', 'Apollo Neuro online store']
+2026-05-20T16:24:43.056213389Z [inf]  2026-05-20 16:24:43 | WARNING  | main | [Jina Smart][Track A] Hit 18.0s deadline — using whatever Track B has
+2026-05-20T16:24:43.056223150Z [inf]  2026-05-20 16:24:43 | WARNING  | main | [Jina Smart] Both tracks returned no content — returning NOTFOUND
+2026-05-20T16:24:43.056229203Z [inf]  2026-05-20 16:24:43 | WARNING  | main | [Jina Smart] Attempt 1/2 returned NOTFOUND — retrying...
+2026-05-20T16:24:43.129851163Z [inf]  2026-05-20 16:24:43 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://akila.la | provider=jina
+2026-05-20T16:24:43.148790129Z [inf]  2026-05-20 16:24:43 | WARNING  | scraper.jina_scraper | [Jina] Failed for https://vibranthealth.com: 
+2026-05-20T16:24:43.154528452Z [inf]  2026-05-20 16:24:43 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://www.vibranthealth.com | provider=jina
+2026-05-20T16:24:43.210488316Z [inf]  2026-05-20 16:24:43 | WARNING  | main | [Jina Smart] Cross-poll scrape failed for https://www.sabra.com/products: 
+2026-05-20T16:24:43.210495073Z [inf]  2026-05-20 16:24:43 | WARNING  | main | [Jina Smart] Cross-poll scrape failed for https://www.sabra.com/: 
+2026-05-20T16:24:43.210499898Z [inf]  2026-05-20 16:24:43 | WARNING  | main | [Jina Smart] Cross-poll scrape failed for https://www.sabra.com/where-to-buy: 
+2026-05-20T16:24:43.210504867Z [inf]  2026-05-20 16:24:43 | INFO     | main | [Jina Smart] Combined: 0 direct + 12 search = 12 pages
+2026-05-20T16:24:43.210510218Z [inf]  2026-05-20 16:24:43 | INFO     | ai.openrouter_client | Extracting answer from 12 pages with OpenRouter (gemini-2.5-flash)
+2026-05-20T16:24:43.698948988Z [inf]  2026-05-20 16:24:43 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['Mixhers products', "Mixhers women's health", 'Mixhers online shop']
+2026-05-20T16:24:43.698959743Z [inf]  2026-05-20 16:24:43 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Mixhers%20products | provider=jina-search
+2026-05-20T16:24:43.698965866Z [inf]  2026-05-20 16:24:43 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Mixhers%20women%27s%20health | provider=jina-search
+2026-05-20T16:24:43.698970974Z [inf]  2026-05-20 16:24:43 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Mixhers%20online%20shop | provider=jina-search
+2026-05-20T16:24:43.699014502Z [inf]  2026-05-20 16:24:43 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=827 | output=15 | total=842
+2026-05-20T16:24:43.699018704Z [inf]  2026-05-20 16:24:43 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['Mixhers products', "Mixhers women's health", 'Mixhers online shop']
+2026-05-20T16:24:43.734141076Z [inf]  2026-05-20 16:24:43 | INFO     | scraper.jina_scraper | [Jina] Scraped 62293 chars from https://davids-usa.com (keep_links=True)
+2026-05-20T16:24:43.734146742Z [inf]  2026-05-20 16:24:43 | INFO     | main | [Jina Smart][Track A] Homepage: 20000 chars from https://davids-usa.com
+2026-05-20T16:24:43.734151127Z [inf]  2026-05-20 16:24:43 | INFO     | main | [Jina Smart][Track A] Extracted 30 internal links from homepage
+2026-05-20T16:24:43.756278353Z [inf]  2026-05-20 16:24:43 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=extract_answer | model=gemini-2.5-flash | input=1802 | output=83 | total=1885
+2026-05-20T16:24:43.762139391Z [inf]  INFO:     100.64.0.7:29350 - "POST /scrape/jina-test HTTP/1.1" 200 OK
+2026-05-20T16:24:43.762144979Z [inf]  2026-05-20 16:24:43 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=pick_relevant_links | model=gemini-2.5-flash | input=831 | output=64 | total=895
+2026-05-20T16:24:43.762149849Z [inf]  2026-05-20 16:24:43 | INFO     | ai.openrouter_client | [AI] Picked 3 relevant link(s) from 12: ['https://goflaus.com/collections/all', 'https://goflaus.com/pages/about', 'https://goflaus.com/collections/bundle-save']
+2026-05-20T16:24:43.762154951Z [inf]  2026-05-20 16:24:43 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=extract_answer | model=gemini-2.5-flash | input=7156 | output=287 | total=7443
+2026-05-20T16:24:43.773864672Z [inf]  2026-05-20 16:24:43 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://goflaus.com/collections/all | provider=jina
+2026-05-20T16:24:43.773873175Z [inf]  2026-05-20 16:24:43 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://goflaus.com/pages/about | provider=jina
+2026-05-20T16:24:43.785159856Z [inf]  2026-05-20 16:24:43 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://goflaus.com/collections/bundle-save | provider=jina
+2026-05-20T16:24:43.785166235Z [inf]  INFO:     100.64.0.13:58752 - "POST /scrape/jina-test HTTP/1.1" 200 OK
+2026-05-20T16:24:43.786613666Z [inf]  2026-05-20 16:24:43 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Mixhers products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Mixhers%20products'
+2026-05-20T16:24:43.786617551Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:43.786621789Z [inf]  2026-05-20 16:24:43 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Mixhers women's health': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Mixhers%20women%27s%20health'
+2026-05-20T16:24:43.786626154Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:43.786630994Z [inf]  2026-05-20 16:24:43 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Mixhers online shop': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Mixhers%20online%20shop'
+2026-05-20T16:24:43.786635528Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:43.786639505Z [inf]  2026-05-20 16:24:43 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['Mixhers products', "Mixhers women's health", 'Mixhers online shop']
+2026-05-20T16:24:43.870574785Z [inf]  2026-05-20 16:24:43 | INFO     | scraper.jina_scraper | [Jina] Scraped 5542 chars from https://elsenutrition.com/collections/toddler-products (keep_links=False)
+2026-05-20T16:24:44.014337691Z [inf]  2026-05-20 16:24:44 | INFO     | main | [Jina Smart] Starting pipeline with data keys: ['name', 'website', 'linkedin']
+2026-05-20T16:24:44.027348327Z [inf]  2026-05-20 16:24:44 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://trycreate.co | provider=jina
+2026-05-20T16:24:44.045942332Z [inf]  2026-05-20 16:24:44 | INFO     | scraper.jina_scraper | [Jina] Scraped 14280 chars from https://modo.com (keep_links=True)
+2026-05-20T16:24:44.045947380Z [inf]  2026-05-20 16:24:44 | INFO     | main | [Jina Smart][Track A] Homepage: 14280 chars from https://modo.com
+2026-05-20T16:24:44.045952064Z [inf]  2026-05-20 16:24:44 | INFO     | main | [Jina Smart][Track A] Extracted 34 internal links from homepage
+2026-05-20T16:24:44.052066210Z [inf]  2026-05-20 16:24:44 | INFO     | scraper.jina_scraper | [Jina] Scraped 5646 chars from https://goflaus.com/pages/about (keep_links=False)
+2026-05-20T16:24:44.066245167Z [inf]  2026-05-20 16:24:44 | INFO     | scraper.jina_scraper | [Jina] Scraped 1491 chars from https://elsenutrition.com/collections/kids-products (keep_links=False)
+2026-05-20T16:24:44.066255977Z [inf]  2026-05-20 16:24:44 | INFO     | main | [Jina Smart][Track A] Subpage: 5542 chars from https://elsenutrition.com/collections/toddler-products
+2026-05-20T16:24:44.066261609Z [inf]  2026-05-20 16:24:44 | INFO     | main | [Jina Smart][Track A] Subpage: 1491 chars from https://elsenutrition.com/collections/kids-products
+2026-05-20T16:24:44.066266656Z [inf]  2026-05-20 16:24:44 | INFO     | main | [Jina Smart] Combined: 3 direct + 0 search = 3 pages
+2026-05-20T16:24:44.066271143Z [inf]  2026-05-20 16:24:44 | INFO     | ai.openrouter_client | Extracting answer from 3 pages with OpenRouter (gemini-2.5-flash)
+2026-05-20T16:24:44.139314287Z [inf]  2026-05-20 16:24:44 | INFO     | scraper.jina_scraper | [Jina] Scraped 2882 chars from https://goflaus.com/collections/all (keep_links=False)
+2026-05-20T16:24:44.145385690Z [inf]  2026-05-20 16:24:44 | INFO     | scraper.jina_scraper | [Jina] Scraped 2444 chars from https://goflaus.com/collections/bundle-save (keep_links=False)
+2026-05-20T16:24:44.145419428Z [inf]  2026-05-20 16:24:44 | INFO     | main | [Jina Smart][Track A] Subpage: 2882 chars from https://goflaus.com/collections/all
+2026-05-20T16:24:44.145426675Z [inf]  2026-05-20 16:24:44 | INFO     | main | [Jina Smart][Track A] Subpage: 5646 chars from https://goflaus.com/pages/about
+2026-05-20T16:24:44.145434281Z [inf]  2026-05-20 16:24:44 | INFO     | main | [Jina Smart][Track A] Subpage: 2444 chars from https://goflaus.com/collections/bundle-save
+2026-05-20T16:24:44.145440323Z [inf]  2026-05-20 16:24:44 | INFO     | main | [Jina Smart] Combined: 4 direct + 0 search = 4 pages
+2026-05-20T16:24:44.145446259Z [inf]  2026-05-20 16:24:44 | INFO     | ai.openrouter_client | Extracting answer from 4 pages with OpenRouter (gemini-2.5-flash)
+2026-05-20T16:24:44.163130795Z [inf]  2026-05-20 16:24:44 | WARNING  | main | [Jina Smart][Track A] Subpage fetch failed for https://idealnutritionnow.com/pages/menu: 
+2026-05-20T16:24:44.163135514Z [inf]  2026-05-20 16:24:44 | INFO     | main | [Jina Smart][Track A] Subpage: 3051 chars from https://idealnutritionnow.com/pages/about-us
+2026-05-20T16:24:44.163140618Z [inf]  2026-05-20 16:24:44 | INFO     | main | [Jina Smart] Combined: 2 direct + 0 search = 2 pages
+2026-05-20T16:24:44.163145627Z [inf]  2026-05-20 16:24:44 | INFO     | ai.openrouter_client | Extracting answer from 2 pages with OpenRouter (gemini-2.5-flash)
+2026-05-20T16:24:44.175631070Z [inf]  2026-05-20 16:24:44 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=837 | output=21 | total=858
+2026-05-20T16:24:44.175635863Z [inf]  2026-05-20 16:24:44 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['Rehab 2 Perform services', 'Rehab 2 Perform physical therapy', 'Rehab 2 Perform appointments']
+2026-05-20T16:24:44.175640963Z [inf]  2026-05-20 16:24:44 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['Rehab 2 Perform services', 'Rehab 2 Perform physical therapy', 'Rehab 2 Perform appointments']
+2026-05-20T16:24:44.181600006Z [inf]  2026-05-20 16:24:44 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Rehab%202%20Perform%20services | provider=jina-search
+2026-05-20T16:24:44.187289480Z [inf]  2026-05-20 16:24:44 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Rehab%202%20Perform%20physical%20therapy | provider=jina-search
+2026-05-20T16:24:44.194876829Z [inf]  2026-05-20 16:24:44 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Rehab%202%20Perform%20appointments | provider=jina-search
+2026-05-20T16:24:44.305450983Z [inf]  2026-05-20 16:24:44 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=834 | output=16 | total=850
+2026-05-20T16:24:44.305456500Z [inf]  2026-05-20 16:24:44 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['GLO Science products', 'GLO Science teeth whitening', 'GLO Science online store']
+2026-05-20T16:24:44.305460791Z [inf]  2026-05-20 16:24:44 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['GLO Science products', 'GLO Science teeth whitening', 'GLO Science online store']
+2026-05-20T16:24:44.305464942Z [inf]  2026-05-20 16:24:44 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=GLO%20Science%20products | provider=jina-search
+2026-05-20T16:24:44.312364954Z [inf]  2026-05-20 16:24:44 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=GLO%20Science%20teeth%20whitening | provider=jina-search
+2026-05-20T16:24:44.318344500Z [inf]  2026-05-20 16:24:44 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=GLO%20Science%20online%20store | provider=jina-search
+2026-05-20T16:24:44.391163234Z [inf]  2026-05-20 16:24:44 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Rehab 2 Perform services': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Rehab%202%20Perform%20services'
+2026-05-20T16:24:44.391169873Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:44.391175939Z [inf]  2026-05-20 16:24:44 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Rehab 2 Perform physical therapy': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Rehab%202%20Perform%20physical%20therapy'
+2026-05-20T16:24:44.391181010Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:44.391185492Z [inf]  2026-05-20 16:24:44 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Rehab 2 Perform appointments': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Rehab%202%20Perform%20appointments'
+2026-05-20T16:24:44.391189995Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:44.391194575Z [inf]  2026-05-20 16:24:44 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['Rehab 2 Perform services', 'Rehab 2 Perform physical therapy', 'Rehab 2 Perform appointments']
+2026-05-20T16:24:44.516008564Z [inf]  2026-05-20 16:24:44 | WARNING  | main | [Jina Smart][Track B] Search failed for 'GLO Science products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=GLO%20Science%20products'
+2026-05-20T16:24:44.516018048Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:44.516024263Z [inf]  2026-05-20 16:24:44 | WARNING  | main | [Jina Smart][Track B] Search failed for 'GLO Science teeth whitening': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=GLO%20Science%20teeth%20whitening'
+2026-05-20T16:24:44.516028969Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:44.516033860Z [inf]  2026-05-20 16:24:44 | WARNING  | main | [Jina Smart][Track B] Search failed for 'GLO Science online store': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=GLO%20Science%20online%20store'
+2026-05-20T16:24:44.516039531Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:44.516044218Z [inf]  2026-05-20 16:24:44 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['GLO Science products', 'GLO Science teeth whitening', 'GLO Science online store']
+2026-05-20T16:24:44.524653126Z [inf]  2026-05-20 16:24:44 | INFO     | scraper.jina_scraper | [Jina] Scraped 27577 chars from https://drsebiscellfood.com (keep_links=True)
+2026-05-20T16:24:44.524666655Z [inf]  2026-05-20 16:24:44 | INFO     | main | [Jina Smart][Track A] Homepage: 20000 chars from https://drsebiscellfood.com
+2026-05-20T16:24:44.530285279Z [inf]  2026-05-20 16:24:44 | INFO     | main | [Jina Smart][Track A] Extracted 53 internal links from homepage
+2026-05-20T16:24:44.697196494Z [inf]  2026-05-20 16:24:44 | INFO     | main | [Jina Smart][Track A] Extracted 1 internal links from homepage
+2026-05-20T16:24:44.697288475Z [inf]  2026-05-20 16:24:44 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://feals.com | provider=jina
+2026-05-20T16:24:44.697292723Z [inf]  2026-05-20 16:24:44 | INFO     | scraper.jina_scraper | [Jina] Scraped 29013 chars from https://trycreate.co (keep_links=True)
+2026-05-20T16:24:44.697297183Z [inf]  2026-05-20 16:24:44 | INFO     | main | [Jina Smart][Track A] Homepage: 20000 chars from https://trycreate.co
+2026-05-20T16:24:44.871798732Z [inf]  2026-05-20 16:24:44 | INFO     | main | [Jina Smart] Starting pipeline with data keys: ['name', 'website']
+2026-05-20T16:24:44.888392017Z [inf]  2026-05-20 16:24:44 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://www.kerasal.com | provider=jina
+2026-05-20T16:24:44.888399274Z [inf]  2026-05-20 16:24:44 | INFO     | scraper.jina_scraper | [Jina] Scraped 35824 chars from https://rehab2perform.com (keep_links=True)
+2026-05-20T16:24:44.888411106Z [inf]  2026-05-20 16:24:44 | INFO     | main | [Jina Smart][Track A] Homepage: 20000 chars from https://rehab2perform.com
+2026-05-20T16:24:44.893806431Z [inf]  2026-05-20 16:24:44 | INFO     | main | [Jina Smart][Track A] Extracted 46 internal links from homepage
+2026-05-20T16:24:44.945752517Z [inf]  2026-05-20 16:24:44 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=832 | output=13 | total=845
+2026-05-20T16:24:44.945756792Z [inf]  2026-05-20 16:24:44 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['Hilma products', 'Hilma online store', 'What is Hilma']
+2026-05-20T16:24:44.945760839Z [inf]  2026-05-20 16:24:44 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['Hilma products', 'Hilma online store', 'What is Hilma']
+2026-05-20T16:24:44.951384835Z [inf]  2026-05-20 16:24:44 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Hilma%20products | provider=jina-search
+2026-05-20T16:24:44.956741628Z [inf]  2026-05-20 16:24:44 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Hilma%20online%20store | provider=jina-search
+2026-05-20T16:24:44.962413682Z [inf]  2026-05-20 16:24:44 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=What%20is%20Hilma | provider=jina-search
+2026-05-20T16:24:44.975444449Z [inf]  2026-05-20 16:24:44 | INFO     | scraper.jina_scraper | [Jina] Scraped 19295 chars from https://feals.com (keep_links=True)
+2026-05-20T16:24:44.975456236Z [inf]  2026-05-20 16:24:44 | INFO     | main | [Jina Smart][Track A] Homepage: 19295 chars from https://feals.com
+2026-05-20T16:24:44.980562453Z [inf]  2026-05-20 16:24:44 | INFO     | main | [Jina Smart][Track A] Extracted 25 internal links from homepage
+2026-05-20T16:24:45.028249909Z [inf]  2026-05-20 16:24:45 | INFO     | main | [Jina Smart] Starting pipeline with data keys: ['name', 'website', 'linkedin']
+2026-05-20T16:24:45.040663692Z [inf]  2026-05-20 16:24:45 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://www.tempdrop.com | provider=jina
+2026-05-20T16:24:45.094139483Z [inf]  2026-05-20 16:24:45 | INFO     | main | [Jina Smart] Starting pipeline with data keys: ['name', 'website', 'linkedin']
+2026-05-20T16:24:45.107126481Z [inf]  2026-05-20 16:24:45 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://www.jaquishbiomedical.com | provider=jina
+2026-05-20T16:24:45.119769818Z [inf]  2026-05-20 16:24:45 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=832 | output=15 | total=847
+2026-05-20T16:24:45.119776298Z [inf]  2026-05-20 16:24:45 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['Partake Foods products', 'Partake Foods cookies', 'Partake Foods online store']
+2026-05-20T16:24:45.119781361Z [inf]  2026-05-20 16:24:45 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['Partake Foods products', 'Partake Foods cookies', 'Partake Foods online store']
+2026-05-20T16:24:45.125460548Z [inf]  2026-05-20 16:24:45 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Partake%20Foods%20products | provider=jina-search
+2026-05-20T16:24:45.131292607Z [inf]  2026-05-20 16:24:45 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Partake%20Foods%20cookies | provider=jina-search
+2026-05-20T16:24:45.137304399Z [inf]  2026-05-20 16:24:45 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Partake%20Foods%20online%20store | provider=jina-search
+2026-05-20T16:24:45.165773183Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:45.165782254Z [inf]  2026-05-20 16:24:45 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['Hilma products', 'Hilma online store', 'What is Hilma']
+2026-05-20T16:24:45.165823733Z [inf]  2026-05-20 16:24:45 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Hilma products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Hilma%20products'
+2026-05-20T16:24:45.165828427Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:45.165833407Z [inf]  2026-05-20 16:24:45 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Hilma online store': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Hilma%20online%20store'
+2026-05-20T16:24:45.165838267Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:45.165842582Z [inf]  2026-05-20 16:24:45 | WARNING  | main | [Jina Smart][Track B] Search failed for 'What is Hilma': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=What%20is%20Hilma'
+2026-05-20T16:24:45.229920788Z [inf]  2026-05-20 16:24:45 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://thelumebox.com | provider=jina
+2026-05-20T16:24:45.277063048Z [inf]  2026-05-20 16:24:45 | INFO     | scraper.jina_scraper | [Jina] Scraped 31189 chars from https://axonoptics.com (keep_links=True)
+2026-05-20T16:24:45.277070102Z [inf]  2026-05-20 16:24:45 | INFO     | main | [Jina Smart][Track A] Homepage: 20000 chars from https://axonoptics.com
+2026-05-20T16:24:45.278241209Z [inf]  2026-05-20 16:24:45 | INFO     | main | [Jina Smart][Track A] Extracted 28 internal links from homepage
+2026-05-20T16:24:45.325794997Z [inf]  2026-05-20 16:24:45 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Partake Foods products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Partake%20Foods%20products'
+2026-05-20T16:24:45.325802577Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:45.325809361Z [inf]  2026-05-20 16:24:45 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Partake Foods cookies': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Partake%20Foods%20cookies'
+2026-05-20T16:24:45.325816425Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:45.325823183Z [inf]  2026-05-20 16:24:45 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Partake Foods online store': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Partake%20Foods%20online%20store'
+2026-05-20T16:24:45.325830341Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:45.325837155Z [inf]  2026-05-20 16:24:45 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['Partake Foods products', 'Partake Foods cookies', 'Partake Foods online store']
+2026-05-20T16:24:45.336685455Z [inf]  2026-05-20 16:24:45 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=pick_relevant_links | model=gemini-2.5-flash | input=1105 | output=72 | total=1177
+2026-05-20T16:24:45.336689529Z [inf]  2026-05-20 16:24:45 | INFO     | ai.openrouter_client | [AI] Picked 2 relevant link(s) from 17: ['https://eczemahoneyco.com/collections/best-sellers-1', 'https://eczemahoneyco.com/collections/dropdown-face-body']
+2026-05-20T16:24:45.342552167Z [inf]  2026-05-20 16:24:45 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://eczemahoneyco.com/collections/best-sellers-1 | provider=jina
+2026-05-20T16:24:45.349554265Z [inf]  2026-05-20 16:24:45 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://eczemahoneyco.com/collections/dropdown-face-body | provider=jina
+2026-05-20T16:24:45.352112004Z [inf]  2026-05-20 16:24:45 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=extract_answer | model=gemini-2.5-flash | input=13862 | output=135 | total=13997
+2026-05-20T16:24:45.358069754Z [inf]  INFO:     100.64.0.20:15836 - "POST /scrape/jina-test HTTP/1.1" 200 OK
+2026-05-20T16:24:45.358076366Z [inf]  2026-05-20 16:24:45 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=827 | output=12 | total=839
+2026-05-20T16:24:45.358080785Z [inf]  2026-05-20 16:24:45 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['Create Wellness products', 'Create Wellness health', 'Create Wellness online store']
+2026-05-20T16:24:45.358084884Z [inf]  2026-05-20 16:24:45 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['Create Wellness products', 'Create Wellness health', 'Create Wellness online store']
+2026-05-20T16:24:45.363873248Z [inf]  2026-05-20 16:24:45 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Create%20Wellness%20products | provider=jina-search
+2026-05-20T16:24:45.369696712Z [inf]  2026-05-20 16:24:45 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Create%20Wellness%20health | provider=jina-search
+2026-05-20T16:24:45.376677448Z [inf]  2026-05-20 16:24:45 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Create%20Wellness%20online%20store | provider=jina-search
+2026-05-20T16:24:45.382364029Z [inf]  2026-05-20 16:24:45 | INFO     | scraper.jina_scraper | [Jina] Scraped 27983 chars from https://www.olivemypickle.com/collections/all (keep_links=False)
+2026-05-20T16:24:45.393897472Z [inf]  2026-05-20 16:24:45 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=827 | output=12 | total=839
+2026-05-20T16:24:45.393901950Z [inf]  2026-05-20 16:24:45 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['AKILA products', 'AKILA eyewear', 'AKILA online store']
+2026-05-20T16:24:45.395109264Z [inf]  2026-05-20 16:24:45 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['AKILA products', 'AKILA eyewear', 'AKILA online store']
+2026-05-20T16:24:45.395117458Z [inf]  2026-05-20 16:24:45 | INFO     | scraper.jina_scraper | [Jina] Scraped 2592 chars from https://www.olivemypickle.com/pages/about-olive-my-pickle (keep_links=False)
+2026-05-20T16:24:45.407567837Z [inf]  2026-05-20 16:24:45 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=AKILA%20products | provider=jina-search
+2026-05-20T16:24:45.408525139Z [inf]  2026-05-20 16:24:45 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=AKILA%20eyewear | provider=jina-search
+2026-05-20T16:24:45.414625615Z [inf]  2026-05-20 16:24:45 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=AKILA%20online%20store | provider=jina-search
+2026-05-20T16:24:45.420766364Z [inf]  2026-05-20 16:24:45 | INFO     | main | [Jina Smart][Track A] Subpage: 20000 chars from https://www.olivemypickle.com/collections/all
+2026-05-20T16:24:45.420774639Z [inf]  2026-05-20 16:24:45 | INFO     | main | [Jina Smart][Track A] Subpage: 2592 chars from https://www.olivemypickle.com/pages/about-olive-my-pickle
+2026-05-20T16:24:45.420781422Z [inf]  2026-05-20 16:24:45 | INFO     | main | [Jina Smart] Combined: 3 direct + 0 search = 3 pages
+2026-05-20T16:24:45.420788002Z [inf]  2026-05-20 16:24:45 | INFO     | ai.openrouter_client | Extracting answer from 3 pages with OpenRouter (gemini-2.5-flash)
+2026-05-20T16:24:45.725317924Z [inf]  2026-05-20 16:24:45 | INFO     | main | [Jina Smart][Track A] Homepage: 18303 chars from https://thelumebox.com
+2026-05-20T16:24:45.725330770Z [inf]  2026-05-20 16:24:45 | INFO     | main | [Jina Smart][Track A] Extracted 2 internal links from homepage
+2026-05-20T16:24:45.725338485Z [inf]  2026-05-20 16:24:45 | WARNING  | scraper.jina_scraper | [Jina] Failed for https://heritagestore.com: 
+2026-05-20T16:24:45.725347873Z [inf]  2026-05-20 16:24:45 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://www.heritagestore.com | provider=jina
+2026-05-20T16:24:45.725355299Z [inf]  2026-05-20 16:24:45 | INFO     | scraper.jina_scraper | [Jina] Scraped 2955 chars from https://eczemahoneyco.com/collections/best-sellers-1 (keep_links=False)
+2026-05-20T16:24:45.725463182Z [inf]  2026-05-20 16:24:45 | INFO     | scraper.jina_scraper | [Jina] Scraped 18303 chars from https://thelumebox.com (keep_links=True)
+2026-05-20T16:24:45.767746354Z [inf]  2026-05-20 16:24:45 | INFO     | scraper.jina_scraper | [Jina] Scraped 2861 chars from https://eczemahoneyco.com/collections/dropdown-face-body (keep_links=False)
+2026-05-20T16:24:45.767756282Z [inf]  2026-05-20 16:24:45 | INFO     | main | [Jina Smart][Track A] Subpage: 2955 chars from https://eczemahoneyco.com/collections/best-sellers-1
+2026-05-20T16:24:45.767761764Z [inf]  2026-05-20 16:24:45 | INFO     | main | [Jina Smart][Track A] Subpage: 2861 chars from https://eczemahoneyco.com/collections/dropdown-face-body
+2026-05-20T16:24:45.767767422Z [inf]  2026-05-20 16:24:45 | INFO     | main | [Jina Smart] Combined: 3 direct + 0 search = 3 pages
+2026-05-20T16:24:45.767773076Z [inf]  2026-05-20 16:24:45 | INFO     | ai.openrouter_client | Extracting answer from 3 pages with OpenRouter (gemini-2.5-flash)
+2026-05-20T16:24:45.814149414Z [inf]  2026-05-20 16:24:45 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Create Wellness products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Create%20Wellness%20products'
+2026-05-20T16:24:45.814156630Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:45.814161733Z [inf]  2026-05-20 16:24:45 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Create Wellness health': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Create%20Wellness%20health'
+2026-05-20T16:24:45.814166750Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:45.814172156Z [inf]  2026-05-20 16:24:45 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Create Wellness online store': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Create%20Wellness%20online%20store'
+2026-05-20T16:24:45.814178628Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:45.814185444Z [inf]  2026-05-20 16:24:45 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['Create Wellness products', 'Create Wellness health', 'Create Wellness online store']
+2026-05-20T16:24:45.814191661Z [inf]  2026-05-20 16:24:45 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=pick_relevant_links | model=gemini-2.5-flash | input=670 | output=52 | total=722
+2026-05-20T16:24:45.814198539Z [inf]  2026-05-20 16:24:45 | INFO     | ai.openrouter_client | [AI] Picked 3 relevant link(s) from 3: ['https://daiyafoods.com/collections/pizza-and-flatbread', 'https://daiyafoods.com/collections/mac-cheese', 'https://daiyafoods.com/pages/about-daiya']
+2026-05-20T16:24:45.819084358Z [inf]  2026-05-20 16:24:45 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://daiyafoods.com/collections/pizza-and-flatbread | provider=jina
+2026-05-20T16:24:45.824347241Z [inf]  2026-05-20 16:24:45 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://daiyafoods.com/collections/mac-cheese | provider=jina
+2026-05-20T16:24:45.829847643Z [inf]  2026-05-20 16:24:45 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://daiyafoods.com/pages/about-daiya | provider=jina
+2026-05-20T16:24:45.842035234Z [inf]  2026-05-20 16:24:45 | WARNING  | main | [Jina Smart][Track B] Search failed for 'AKILA online store': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=AKILA%20online%20store'
+2026-05-20T16:24:45.842042616Z [inf]  2026-05-20 16:24:45 | WARNING  | main | [Jina Smart][Track B] Search failed for 'AKILA products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=AKILA%20products'
+2026-05-20T16:24:45.842048385Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:45.842048738Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:45.842057683Z [inf]  2026-05-20 16:24:45 | WARNING  | main | [Jina Smart][Track B] Search failed for 'AKILA eyewear': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=AKILA%20eyewear'
+2026-05-20T16:24:45.842059316Z [inf]  2026-05-20 16:24:45 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['AKILA products', 'AKILA eyewear', 'AKILA online store']
+2026-05-20T16:24:45.842064952Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:45.928719377Z [inf]  2026-05-20 16:24:45 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=extract_answer | model=gemini-2.5-flash | input=20339 | output=253 | total=20592
+2026-05-20T16:24:45.929896490Z [inf]  INFO:     100.64.0.8:22236 - "POST /scrape/jina-test HTTP/1.1" 200 OK
+2026-05-20T16:24:45.942244352Z [inf]  2026-05-20 16:24:45 | INFO     | main | [Jina Smart] Starting pipeline with data keys: ['name', 'website', 'linkedin']
+2026-05-20T16:24:45.956614016Z [inf]  2026-05-20 16:24:45 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://www.pureformen.com | provider=jina
+2026-05-20T16:24:46.069427807Z [inf]  2026-05-20 16:24:46 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=pick_relevant_links | model=gemini-2.5-flash | input=818 | output=61 | total=879
+2026-05-20T16:24:46.069434629Z [inf]  2026-05-20 16:24:46 | INFO     | ai.openrouter_client | [AI] Picked 3 relevant link(s) from 10: ['https://ketone.com/collections/shop-all', 'https://ketone.com/pages/team', 'https://ketone.com/pages/subscription']
+2026-05-20T16:24:46.069440457Z [inf]  2026-05-20 16:24:46 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://ketone.com/collections/shop-all | provider=jina
+2026-05-20T16:24:46.074879279Z [inf]  2026-05-20 16:24:46 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://ketone.com/pages/team | provider=jina
+2026-05-20T16:24:46.083026333Z [inf]  2026-05-20 16:24:46 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://ketone.com/pages/subscription | provider=jina
+2026-05-20T16:24:46.235962344Z [inf]  2026-05-20 16:24:46 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://kos.com | provider=jina
+2026-05-20T16:24:46.253791891Z [inf]  2026-05-20 16:24:46 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=pick_relevant_links | model=gemini-2.5-flash | input=1161 | output=56 | total=1217
+2026-05-20T16:24:46.253802372Z [inf]  2026-05-20 16:24:46 | INFO     | ai.openrouter_client | [AI] Picked 2 relevant link(s) from 34: ['https://modo.com/collections/glasses', 'https://modo.com/pages/who-we-are']
+2026-05-20T16:24:46.265687201Z [inf]  2026-05-20 16:24:46 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://modo.com/collections/glasses | provider=jina
+2026-05-20T16:24:46.271232767Z [inf]  2026-05-20 16:24:46 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://modo.com/pages/who-we-are | provider=jina
+2026-05-20T16:24:46.306939829Z [inf]  2026-05-20 16:24:46 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=827 | output=13 | total=840
+2026-05-20T16:24:46.306946045Z [inf]  2026-05-20 16:24:46 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['Feals products', 'Feals CBD oil', 'Feals online shop']
+2026-05-20T16:24:46.306951892Z [inf]  2026-05-20 16:24:46 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['Feals products', 'Feals CBD oil', 'Feals online shop']
+2026-05-20T16:24:46.306959657Z [inf]  2026-05-20 16:24:46 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Feals%20products | provider=jina-search
+2026-05-20T16:24:46.312709177Z [inf]  2026-05-20 16:24:46 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Feals%20CBD%20oil | provider=jina-search
+2026-05-20T16:24:46.325313214Z [inf]  2026-05-20 16:24:46 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Feals%20online%20shop | provider=jina-search
+2026-05-20T16:24:46.507651555Z [inf]  2026-05-20 16:24:46 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Feals products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Feals%20products'
+2026-05-20T16:24:46.507658511Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:46.507665071Z [inf]  2026-05-20 16:24:46 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Feals CBD oil': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Feals%20CBD%20oil'
+2026-05-20T16:24:46.507672800Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:46.507679326Z [inf]  2026-05-20 16:24:46 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Feals online shop': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Feals%20online%20shop'
+2026-05-20T16:24:46.507685145Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:46.507691885Z [inf]  2026-05-20 16:24:46 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['Feals products', 'Feals CBD oil', 'Feals online shop']
+2026-05-20T16:24:46.529497700Z [inf]  2026-05-20 16:24:46 | INFO     | main | [Jina Smart] Starting pipeline with data keys: ['name', 'website', 'linkedin']
+2026-05-20T16:24:46.543297526Z [inf]  2026-05-20 16:24:46 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://www.anthros.com | provider=jina
+2026-05-20T16:24:46.562242572Z [inf]  2026-05-20 16:24:46 | INFO     | scraper.jina_scraper | [Jina] Scraped 15795 chars from https://kos.com (keep_links=True)
+2026-05-20T16:24:46.562247440Z [inf]  2026-05-20 16:24:46 | INFO     | main | [Jina Smart][Track A] Homepage: 15795 chars from https://kos.com
+2026-05-20T16:24:46.562252965Z [inf]  2026-05-20 16:24:46 | INFO     | main | [Jina Smart][Track A] Extracted 1 internal links from homepage
+2026-05-20T16:24:46.706856718Z [inf]  2026-05-20 16:24:46 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=824 | output=14 | total=838
+2026-05-20T16:24:46.706861862Z [inf]  2026-05-20 16:24:46 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['kerasal products', 'kerasal foot care', 'kerasal where to buy']
+2026-05-20T16:24:46.706866489Z [inf]  2026-05-20 16:24:46 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['kerasal products', 'kerasal foot care', 'kerasal where to buy']
+2026-05-20T16:24:46.706872588Z [inf]  2026-05-20 16:24:46 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=kerasal%20products | provider=jina-search
+2026-05-20T16:24:46.706878523Z [inf]  2026-05-20 16:24:46 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=kerasal%20foot%20care | provider=jina-search
+2026-05-20T16:24:46.706882900Z [inf]  2026-05-20 16:24:46 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=kerasal%20where%20to%20buy | provider=jina-search
+2026-05-20T16:24:46.706886944Z [inf]  2026-05-20 16:24:46 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=830 | output=13 | total=843
+2026-05-20T16:24:46.706891110Z [inf]  2026-05-20 16:24:46 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['Lumebox products', 'Lumebox light therapy', 'Lumebox shop online']
+2026-05-20T16:24:46.706895404Z [inf]  2026-05-20 16:24:46 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['Lumebox products', 'Lumebox light therapy', 'Lumebox shop online']
+2026-05-20T16:24:46.706899749Z [inf]  2026-05-20 16:24:46 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Lumebox%20products | provider=jina-search
+2026-05-20T16:24:46.706903839Z [inf]  2026-05-20 16:24:46 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Lumebox%20light%20therapy | provider=jina-search
+2026-05-20T16:24:46.707536658Z [inf]  2026-05-20 16:24:46 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Lumebox%20shop%20online | provider=jina-search
+2026-05-20T16:24:46.781007956Z [inf]  2026-05-20 16:24:46 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=pick_relevant_links | model=gemini-2.5-flash | input=1381 | output=44 | total=1425
+2026-05-20T16:24:46.781018036Z [inf]  2026-05-20 16:24:46 | INFO     | ai.openrouter_client | [AI] Picked 3 relevant link(s) from 36: ['https://wearwellow.com/collections/shop', 'https://wearwellow.com/pages/about', 'https://wearwellow.com/collections/best-sellers']
+2026-05-20T16:24:46.786735426Z [inf]  2026-05-20 16:24:46 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://wearwellow.com/collections/shop | provider=jina
+2026-05-20T16:24:46.795870093Z [inf]  2026-05-20 16:24:46 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://wearwellow.com/pages/about | provider=jina
+2026-05-20T16:24:46.801888460Z [inf]  2026-05-20 16:24:46 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://wearwellow.com/collections/best-sellers | provider=jina
+2026-05-20T16:24:46.824958212Z [inf]  2026-05-20 16:24:46 | WARNING  | main | [Jina Smart][Track B] Search failed for 'kerasal products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=kerasal%20products'
+2026-05-20T16:24:46.824968750Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:46.824976148Z [inf]  2026-05-20 16:24:46 | WARNING  | main | [Jina Smart][Track B] Search failed for 'kerasal foot care': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=kerasal%20foot%20care'
+2026-05-20T16:24:46.824981254Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:46.824986568Z [inf]  2026-05-20 16:24:46 | WARNING  | main | [Jina Smart][Track B] Search failed for 'kerasal where to buy': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=kerasal%20where%20to%20buy'
+2026-05-20T16:24:46.824993004Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:46.824998226Z [inf]  2026-05-20 16:24:46 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['kerasal products', 'kerasal foot care', 'kerasal where to buy']
+2026-05-20T16:24:46.825002691Z [inf]  2026-05-20 16:24:46 | WARNING  | main | [Jina Smart][Track A] Hit 18.0s deadline — using whatever Track B has
+2026-05-20T16:24:46.825006955Z [inf]  2026-05-20 16:24:46 | WARNING  | main | [Jina Smart] Both tracks returned no content — returning NOTFOUND
+2026-05-20T16:24:46.825011675Z [inf]  2026-05-20 16:24:46 | WARNING  | main | [Jina Smart] Attempt 1/2 returned NOTFOUND — retrying...
+2026-05-20T16:24:46.930539332Z [inf]  2026-05-20 16:24:46 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Lumebox products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Lumebox%20products'
+2026-05-20T16:24:46.930543440Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:46.930547441Z [inf]  2026-05-20 16:24:46 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Lumebox light therapy': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Lumebox%20light%20therapy'
+2026-05-20T16:24:46.930551400Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:46.930556328Z [inf]  2026-05-20 16:24:46 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Lumebox shop online': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Lumebox%20shop%20online'
+2026-05-20T16:24:46.930560950Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:46.930565011Z [inf]  2026-05-20 16:24:46 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['Lumebox products', 'Lumebox light therapy', 'Lumebox shop online']
+2026-05-20T16:24:47.072605981Z [inf]  2026-05-20 16:24:47 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://medterracbd.com | provider=jina
+2026-05-20T16:24:47.666903642Z [inf]  2026-05-20 16:24:47 | WARNING  | scraper.jina_scraper | [Jina] Failed for https://tryautobrush.com: 
+2026-05-20T16:24:47.666908432Z [inf]  2026-05-20 16:24:47 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://www.tryautobrush.com | provider=jina
+2026-05-20T16:24:47.721364729Z [inf]  2026-05-20 16:24:47 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=831 | output=13 | total=844
+2026-05-20T16:24:47.721371031Z [inf]  2026-05-20 16:24:47 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['Tempdrop products', 'Tempdrop fertility tracker', 'Tempdrop buy online']
+2026-05-20T16:24:47.721376066Z [inf]  2026-05-20 16:24:47 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['Tempdrop products', 'Tempdrop fertility tracker', 'Tempdrop buy online']
+2026-05-20T16:24:47.722639063Z [inf]  2026-05-20 16:24:47 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Tempdrop%20products | provider=jina-search
+2026-05-20T16:24:47.736176976Z [inf]  2026-05-20 16:24:47 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Tempdrop%20fertility%20tracker | provider=jina-search
+2026-05-20T16:24:47.747868806Z [inf]  2026-05-20 16:24:47 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Tempdrop%20buy%20online | provider=jina-search
+2026-05-20T16:24:47.781659215Z [inf]  2026-05-20 16:24:47 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=833 | output=15 | total=848
+2026-05-20T16:24:47.781665307Z [inf]  2026-05-20 16:24:47 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['Anthros Chair products', 'Anthros Chair ergonomic', 'Anthros Chair buy online']
+2026-05-20T16:24:47.781669948Z [inf]  2026-05-20 16:24:47 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['Anthros Chair products', 'Anthros Chair ergonomic', 'Anthros Chair buy online']
+2026-05-20T16:24:47.782712488Z [inf]  2026-05-20 16:24:47 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=pick_relevant_links | model=gemini-2.5-flash | input=620 | output=25 | total=645
+2026-05-20T16:24:47.782720373Z [inf]  2026-05-20 16:24:47 | INFO     | ai.openrouter_client | [AI] Picked 1 relevant link(s) from 1: ['https://trycreate.co/collections/shop-all']
+2026-05-20T16:24:47.788683410Z [inf]  2026-05-20 16:24:47 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Anthros%20Chair%20products | provider=jina-search
+2026-05-20T16:24:47.800060034Z [inf]  2026-05-20 16:24:47 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Anthros%20Chair%20ergonomic | provider=jina-search
+2026-05-20T16:24:47.800066913Z [inf]  2026-05-20 16:24:47 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Anthros%20Chair%20buy%20online | provider=jina-search
+2026-05-20T16:24:47.811552463Z [inf]  2026-05-20 16:24:47 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://trycreate.co/collections/shop-all | provider=jina
+2026-05-20T16:24:47.881932472Z [inf]  2026-05-20 16:24:47 | INFO     | scraper.jina_scraper | [Jina] Scraped 16387 chars from https://gloscience.com (keep_links=True)
+2026-05-20T16:24:47.881941608Z [inf]  2026-05-20 16:24:47 | INFO     | main | [Jina Smart][Track A] Homepage: 16387 chars from https://gloscience.com
+2026-05-20T16:24:47.887522198Z [inf]  2026-05-20 16:24:47 | INFO     | main | [Jina Smart][Track A] Extracted 34 internal links from homepage
+2026-05-20T16:24:47.899791204Z [inf]  2026-05-20 16:24:47 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=pick_relevant_links | model=gemini-2.5-flash | input=738 | output=77 | total=815
+2026-05-20T16:24:47.899795336Z [inf]  2026-05-20 16:24:47 | INFO     | ai.openrouter_client | [AI] Picked 3 relevant link(s) from 6: ['https://www.arrae.com/collections/shop-all', 'https://www.arrae.com/pages/build-your-own-bundle', 'https://www.arrae.com/products/bloat-gummies']
+2026-05-20T16:24:47.904749257Z [inf]  2026-05-20 16:24:47 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://www.arrae.com/collections/shop-all | provider=jina
+2026-05-20T16:24:47.910169357Z [inf]  2026-05-20 16:24:47 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://www.arrae.com/pages/build-your-own-bundle | provider=jina
+2026-05-20T16:24:47.921641627Z [inf]  2026-05-20 16:24:47 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://www.arrae.com/products/bloat-gummies | provider=jina
+2026-05-20T16:24:48.003539816Z [inf]  2026-05-20 16:24:47 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Tempdrop products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Tempdrop%20products'
+2026-05-20T16:24:48.003551229Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:48.003557505Z [inf]  2026-05-20 16:24:47 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Tempdrop fertility tracker': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Tempdrop%20fertility%20tracker'
+2026-05-20T16:24:48.003562899Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:48.003567834Z [inf]  2026-05-20 16:24:47 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Tempdrop buy online': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Tempdrop%20buy%20online'
+2026-05-20T16:24:48.003573005Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:48.003577229Z [inf]  2026-05-20 16:24:47 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['Tempdrop products', 'Tempdrop fertility tracker', 'Tempdrop buy online']
+2026-05-20T16:24:48.003581726Z [inf]  2026-05-20 16:24:48 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Anthros Chair products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Anthros%20Chair%20products'
+2026-05-20T16:24:48.003591850Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:48.003598255Z [inf]  2026-05-20 16:24:48 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Anthros Chair ergonomic': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Anthros%20Chair%20ergonomic'
+2026-05-20T16:24:48.003602986Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:48.004633967Z [inf]  2026-05-20 16:24:48 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Anthros Chair buy online': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Anthros%20Chair%20buy%20online'
+2026-05-20T16:24:48.004639074Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:48.004644468Z [inf]  2026-05-20 16:24:48 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['Anthros Chair products', 'Anthros Chair ergonomic', 'Anthros Chair buy online']
+2026-05-20T16:24:48.130978523Z [inf]  2026-05-20 16:24:48 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=831 | output=18 | total=849
+2026-05-20T16:24:48.130984166Z [inf]  2026-05-20 16:24:48 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['KOS.com products', 'KOS Naturals supplements', 'KOS.com online store']
+2026-05-20T16:24:48.130990558Z [inf]  2026-05-20 16:24:48 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['KOS.com products', 'KOS Naturals supplements', 'KOS.com online store']
+2026-05-20T16:24:48.136177901Z [inf]  2026-05-20 16:24:48 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=KOS.com%20products | provider=jina-search
+2026-05-20T16:24:48.141481192Z [inf]  2026-05-20 16:24:48 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=KOS%20Naturals%20supplements | provider=jina-search
+2026-05-20T16:24:48.146873543Z [inf]  2026-05-20 16:24:48 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=KOS.com%20online%20store | provider=jina-search
+2026-05-20T16:24:48.333188254Z [inf]  2026-05-20 16:24:48 | WARNING  | scraper.jina_scraper | [Jina] Failed for https://www.bellaallnatural.com: 
+2026-05-20T16:24:48.333193270Z [inf]  2026-05-20 16:24:48 | WARNING  | main | [Jina Smart][Track A] Homepage fetch failed for https://www.bellaallnatural.com: Jina Reader failed to scrape https://www.bellaallnatural.com: 
+2026-05-20T16:24:48.333198104Z [inf]  2026-05-20 16:24:48 | WARNING  | main | [Jina Smart] Both tracks returned no content — returning NOTFOUND
+2026-05-20T16:24:48.333202547Z [inf]  2026-05-20 16:24:48 | WARNING  | main | [Jina Smart] Attempt 1/2 returned NOTFOUND — retrying...
+2026-05-20T16:24:48.374550106Z [inf]  2026-05-20 16:24:48 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=831 | output=14 | total=845
+2026-05-20T16:24:48.374556522Z [inf]  2026-05-20 16:24:48 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['Medterra CBD products', 'Medterra online store', 'Medterra hemp products']
+2026-05-20T16:24:48.374563671Z [inf]  2026-05-20 16:24:48 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['Medterra CBD products', 'Medterra online store', 'Medterra hemp products']
+2026-05-20T16:24:48.374570243Z [inf]  2026-05-20 16:24:48 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Medterra%20CBD%20products | provider=jina-search
+2026-05-20T16:24:48.381300463Z [inf]  2026-05-20 16:24:48 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Medterra%20online%20store | provider=jina-search
+2026-05-20T16:24:48.387296038Z [inf]  2026-05-20 16:24:48 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Medterra%20hemp%20products | provider=jina-search
+2026-05-20T16:24:48.408879376Z [inf]  2026-05-20 16:24:48 | WARNING  | main | [Jina Smart][Track A] Hit 18.0s deadline — using whatever Track B has
+2026-05-20T16:24:48.408888327Z [inf]  2026-05-20 16:24:48 | WARNING  | main | [Jina Smart] Both tracks returned no content — returning NOTFOUND
+2026-05-20T16:24:48.408894814Z [inf]  2026-05-20 16:24:48 | WARNING  | main | [Jina Smart] Attempt 1/2 returned NOTFOUND — retrying...
+2026-05-20T16:24:48.484116752Z [inf]  2026-05-20 16:24:48 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=extract_answer | model=gemini-2.5-flash | input=10714 | output=258 | total=10972
+2026-05-20T16:24:48.484120838Z [inf]  2026-05-20 16:24:48 | WARNING  | main | [Jina Smart][Track B] Search failed for 'KOS.com products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=KOS.com%20products'
+2026-05-20T16:24:48.484125547Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:48.484129547Z [inf]  2026-05-20 16:24:48 | WARNING  | main | [Jina Smart][Track B] Search failed for 'KOS Naturals supplements': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=KOS%20Naturals%20supplements'
+2026-05-20T16:24:48.484133977Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:48.484137943Z [inf]  2026-05-20 16:24:48 | WARNING  | main | [Jina Smart][Track B] Search failed for 'KOS.com online store': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=KOS.com%20online%20store'
+2026-05-20T16:24:48.484142101Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:48.484147322Z [inf]  2026-05-20 16:24:48 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['KOS.com products', 'KOS Naturals supplements', 'KOS.com online store']
+2026-05-20T16:24:48.484151707Z [inf]  INFO:     100.64.0.15:51088 - "POST /scrape/jina-test HTTP/1.1" 200 OK
+2026-05-20T16:24:48.543096533Z [inf]  2026-05-20 16:24:48 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=848 | output=19 | total=867
+2026-05-20T16:24:48.543101485Z [inf]  2026-05-20 16:24:48 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['Jaquish Biomedical products', 'Jaquish Biomedical health devices', 'Jaquish Biomedical online store']
+2026-05-20T16:24:48.543106016Z [inf]  2026-05-20 16:24:48 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['Jaquish Biomedical products', 'Jaquish Biomedical health devices', 'Jaquish Biomedical online store']
+2026-05-20T16:24:48.544480376Z [inf]  2026-05-20 16:24:48 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Jaquish%20Biomedical%20products | provider=jina-search
+2026-05-20T16:24:48.551576797Z [inf]  2026-05-20 16:24:48 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Jaquish%20Biomedical%20health%20devices | provider=jina-search
+2026-05-20T16:24:48.557151691Z [inf]  2026-05-20 16:24:48 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Jaquish%20Biomedical%20online%20store | provider=jina-search
+2026-05-20T16:24:48.715981890Z [inf]  2026-05-20 16:24:48 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=pick_relevant_links | model=gemini-2.5-flash | input=644 | output=36 | total=680
+2026-05-20T16:24:48.715989207Z [inf]  2026-05-20 16:24:48 | INFO     | ai.openrouter_client | [AI] Picked 2 relevant link(s) from 2: ['https://thelumebox.com/collections/full-catalog', 'https://thelumebox.com/products/lumebox-2-0']
+2026-05-20T16:24:48.721341994Z [inf]  2026-05-20 16:24:48 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://thelumebox.com/collections/full-catalog | provider=jina
+2026-05-20T16:24:48.726776574Z [inf]  2026-05-20 16:24:48 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://thelumebox.com/products/lumebox-2-0 | provider=jina
+2026-05-20T16:24:48.727795198Z [inf]  2026-05-20 16:24:48 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=generate_search_query | model=gemini-2.5-flash | input=836 | output=15 | total=851
+2026-05-20T16:24:48.727802468Z [inf]  2026-05-20 16:24:48 | INFO     | ai.openrouter_client | [AI] Generated 3 search queries: ['Pure for Men products', 'Pure for Men supplements', 'Pure for Men online store']
+2026-05-20T16:24:48.727808390Z [inf]  2026-05-20 16:24:48 | INFO     | main | [Jina Smart][Track B] 3 search queries: ['Pure for Men products', 'Pure for Men supplements', 'Pure for Men online store']
+2026-05-20T16:24:48.739515229Z [inf]  2026-05-20 16:24:48 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Pure%20for%20Men%20products | provider=jina-search
+2026-05-20T16:24:48.740628872Z [inf]  2026-05-20 16:24:48 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Pure%20for%20Men%20supplements | provider=jina-search
+2026-05-20T16:24:48.751934604Z [inf]  2026-05-20 16:24:48 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://s.jina.ai/?q=Pure%20for%20Men%20online%20store | provider=jina-search
+2026-05-20T16:24:48.753565437Z [inf]  2026-05-20 16:24:48 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Medterra CBD products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Medterra%20CBD%20products'
+2026-05-20T16:24:48.753571027Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:48.753575569Z [inf]  2026-05-20 16:24:48 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Medterra online store': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Medterra%20online%20store'
+2026-05-20T16:24:48.753580125Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:48.753585461Z [inf]  2026-05-20 16:24:48 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Medterra hemp products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Medterra%20hemp%20products'
+2026-05-20T16:24:48.753591119Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:48.753595234Z [inf]  2026-05-20 16:24:48 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['Medterra CBD products', 'Medterra online store', 'Medterra hemp products']
+2026-05-20T16:24:48.825534160Z [inf]  2026-05-20 16:24:48 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Jaquish Biomedical products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Jaquish%20Biomedical%20products'
+2026-05-20T16:24:48.825542284Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:48.825548439Z [inf]  2026-05-20 16:24:48 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Jaquish Biomedical health devices': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Jaquish%20Biomedical%20health%20devices'
+2026-05-20T16:24:48.825553490Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:48.825558240Z [inf]  2026-05-20 16:24:48 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Jaquish Biomedical online store': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Jaquish%20Biomedical%20online%20store'
+2026-05-20T16:24:48.825563526Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:48.825568038Z [inf]  2026-05-20 16:24:48 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['Jaquish Biomedical products', 'Jaquish Biomedical health devices', 'Jaquish Biomedical online store']
+2026-05-20T16:24:48.907303203Z [inf]  2026-05-20 16:24:48 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=pick_relevant_links | model=gemini-2.5-flash | input=1320 | output=66 | total=1386
+2026-05-20T16:24:48.907312085Z [inf]  2026-05-20 16:24:48 | INFO     | ai.openrouter_client | [AI] Picked 2 relevant link(s) from 30: ['https://davids-usa.com/collections/all', 'https://davids-usa.com/pages/elevated-performance-1']
+2026-05-20T16:24:48.907318121Z [inf]  2026-05-20 16:24:48 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://davids-usa.com/collections/all | provider=jina
+2026-05-20T16:24:48.907324645Z [inf]  2026-05-20 16:24:48 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://davids-usa.com/pages/elevated-performance-1 | provider=jina
+2026-05-20T16:24:48.925200171Z [inf]  2026-05-20 16:24:48 | INFO     | scraper.jina_scraper | [Jina] Scraped 36955 chars from https://amazinggrass.com (keep_links=True)
+2026-05-20T16:24:48.925208312Z [inf]  2026-05-20 16:24:48 | INFO     | main | [Jina Smart][Track A] Homepage: 20000 chars from https://amazinggrass.com
+2026-05-20T16:24:48.925214395Z [inf]  2026-05-20 16:24:48 | INFO     | main | [Jina Smart][Track A] Extracted 5 internal links from homepage
+2026-05-20T16:24:48.931726872Z [inf]  2026-05-20 16:24:48 | INFO     | scraper.jina_scraper | [Jina] Scraped 9703 chars from https://akila.la (keep_links=True)
+2026-05-20T16:24:48.932731137Z [inf]  2026-05-20 16:24:48 | INFO     | main | [Jina Smart][Track A] Homepage: 9703 chars from https://akila.la
+2026-05-20T16:24:48.933843547Z [inf]  2026-05-20 16:24:48 | INFO     | main | [Jina Smart][Track A] Extracted 23 internal links from homepage
+2026-05-20T16:24:48.945818781Z [inf]  2026-05-20 16:24:48 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Pure for Men products': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Pure%20for%20Men%20products'
+2026-05-20T16:24:48.945825119Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:48.945832155Z [inf]  2026-05-20 16:24:48 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Pure for Men supplements': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Pure%20for%20Men%20supplements'
+2026-05-20T16:24:48.945836574Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:48.945840424Z [inf]  2026-05-20 16:24:48 | WARNING  | main | [Jina Smart][Track B] Search failed for 'Pure for Men online store': Client error '429 Too Many Requests' for url 'https://s.jina.ai/?q=Pure%20for%20Men%20online%20store'
+2026-05-20T16:24:48.945845178Z [inf]  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+2026-05-20T16:24:48.945849427Z [inf]  2026-05-20 16:24:48 | WARNING  | main | [Jina Smart][Track B] No results for any of: ['Pure for Men products', 'Pure for Men supplements', 'Pure for Men online store']
+2026-05-20T16:24:49.123049591Z [inf]  2026-05-20 16:24:49 | WARNING  | main | [Jina Smart] Both tracks returned no content — returning NOTFOUND
+2026-05-20T16:24:49.123054002Z [inf]  2026-05-20 16:24:49 | WARNING  | main | [Jina Smart] Attempt 1/2 returned NOTFOUND — retrying...
+2026-05-20T16:24:49.291060270Z [inf]  2026-05-20 16:24:49 | INFO     | main | [Jina Smart][Track A] Homepage: 20000 chars from https://sweetlorens.com
+2026-05-20T16:24:49.315251382Z [inf]  2026-05-20 16:24:49 | INFO     | scraper.jina_scraper | [Jina] Scraped 11561 chars from https://www.arrae.com/collections/shop-all (keep_links=False)
+2026-05-20T16:24:49.496103997Z [inf]  2026-05-20 16:24:49 | INFO     | ai.openrouter_client | TOKEN_USAGE | operation=extract_answer | model=gemini-2.5-flash | input=9793 | output=227 | total=10020
+2026-05-20T16:24:49.560331544Z [inf]  2026-05-20 16:24:49 | INFO     | ai.openrouter_client | [AI] Picked 3 relevant link(s) from 46: ['https://rehab2perform.com/about-us', 'https://rehab2perform.com/guides', 'https://rehab2perform.com/r2pplus']
+2026-05-20T16:24:49.712587168Z [inf]  2026-05-20 16:24:49 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://rehab2perform.com/r2pplus | provider=jina
+2026-05-20T16:24:49.712607532Z [inf]  2026-05-20 16:24:49 | INFO     | main | [Jina Smart][Track A] Homepage: 7094 chars from https://partakefoods.com
+2026-05-20T16:24:49.712630749Z [inf]  2026-05-20 16:24:49 | INFO     | ai.openrouter_client | Extracting answer from 1 pages with OpenRouter (gemini-2.5-flash)
+2026-05-20T16:24:49.723574376Z [inf]  2026-05-20 16:24:49 | INFO     | scraper.jina_scraper | [Jina] Scraped 43989 chars from https://www.recoveryfirefly.com (keep_links=True)
+2026-05-20T16:24:49.723581553Z [inf]  2026-05-20 16:24:49 | INFO     | main | [Jina Smart][Track A] Homepage: 20000 chars from https://www.recoveryfirefly.com
+2026-05-20T16:24:50.141441318Z [inf]  2026-05-20 16:24:50 | INFO     | main | [Jina Smart][Track A] Extracted 69 internal links from homepage
+2026-05-20T16:24:50.183877760Z [inf]  2026-05-20 16:24:50 | WARNING  | main | [Jina Smart] Both tracks returned no content — returning NOTFOUND
+2026-05-20T16:24:50.205951798Z [inf]  2026-05-20 16:24:50 | INFO     | main | [Jina Smart] Starting pipeline with data keys: ['name', 'website', 'linkedin']
+2026-05-20T16:24:50.224218341Z [inf]  2026-05-20 16:24:50 | INFO     | scraper.jina_scraper | HTTP_REQUEST | GET https://r.jina.ai/https://www.performancelab.com | provider=jina
+2026-05-20T16:24:50.247565048Z [inf]  2026-05-20 16:24:50 | INFO     | main | [Jina Smart][Track A] Subpage: 4275 chars from https://boncharge.com/pages/about-us
+2026-05-20T16:24:50.355935391Z [inf]  2026-05-20 16:24:50 | INFO     | scraper.jina_scraper | [Jina] Scraped 33195 chars from https://apolloneuro.com (keep_links=True)
+2026-05-20T16:24:50.355942043Z [inf]  2026-05-20 16:24:50 | INFO     | main | [Jina Smart][Track A] Homepage: 20000 chars from https://apolloneuro.com
+2026-05-20T16:24:50.355947127Z [inf]  2026-05-20 16:24:50 | INFO     | main | [Jina Smart][Track A] Extracted 1 internal links from homepage
+2026-05-20T16:24:50.465818470Z [inf]  2026-05-20 16:24:50 | INFO     | scraper.jina_scraper | [Jina] Scraped 23996 chars from https://mixhers.com (keep_links=True)
+2026-05-20T16:24:50.465822818Z [inf]  2026-05-20 16:24:50 | INFO     | main | [Jina Smart][Track A] Homepage: 20000 chars from https://mixhers.com
+2026-05-20T16:24:50.465826849Z [inf]  2026-05-20 16:24:50 | INFO     | main | [Jina Smart][Track A] Extracted 18 internal links from homepage
+2026-05-20T16:24:50.566070532Z [inf]  2026-05-20 16:24:50 | INFO     | main | [Jina Smart] Starting pipeline with data keys: ['name', 'website', 'linkedin']
+2026-05-20T16:24:50.712174934Z [inf]  2026-05-20 16:24:50 | WARNING  | main | [Jina Smart][Track A] Hit 18.0s deadline — using whatever Track B has
+2026-05-20T16:24:50.712197176Z [inf]  2026-05-20 16:24:50 | WARNING  | main | [Jina Smart] Attempt 1/2 returned NOTFOUND — retrying...
+2026-05-20T16:24:50.712211734Z [inf]  INFO:     100.64.0.10:45610 - "POST /scrape/jina-test HTTP/1.1" 200 OK
+2026-05-20T16:24:50.957780144Z [inf]  2026-05-20 16:24:50 | INFO     | scraper.jina_scraper | [Jina] Scraped 17527 chars from https://rehab2perform.com/about-us (keep_links=False)

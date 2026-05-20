@@ -1,0 +1,150 @@
+"""
+LangGraph ReAct agent that researches a company using Jina as tools.
+
+Unlike the fixed two-track pipeline (/scrape/jina-test), here Gemini decides
+what to do: it reads the homepage, navigates to the pages it thinks matter,
+and searches the web when the site doesn't have the answer. It runs a bounded
+tool-calling loop and returns the final JSON.
+
+Tools given to the model:
+  - read_url(url)      → Jina Reader (r.jina.ai), clean page text
+  - search_web(query)  → Jina Search (s.jina.ai), top results
+
+Bounded by recursion_limit (max tool steps) + an outer asyncio timeout in the
+endpoint, so a single row can never run away.
+"""
+import json
+
+from langchain_core.tools import tool
+from langchain_core.messages import SystemMessage, HumanMessage
+from langgraph.prebuilt import create_react_agent
+from langchain_google_genai import ChatGoogleGenerativeAI
+
+from config import get_settings
+from scraper.jina_scraper import JinaScraper
+from utils.logging import setup_logger
+
+logger = setup_logger(__name__)
+
+
+@tool
+async def read_url(url: str) -> str:
+    """Read a single web page and return its clean text content.
+    Use this to read the company homepage and any subpage (products, shop,
+    collections, about, pricing). Pass a full URL like https://example.com/shop."""
+    jina = JinaScraper()
+    try:
+        content = await jina.scrape_url(url, keep_links=True)
+        logger.info(f"[Jina Agent] read_url({url}) → {len(content)} chars")
+        return content[:18000]
+    except Exception as e:
+        logger.warning(f"[Jina Agent] read_url({url}) failed: {e}")
+        return f"ERROR: could not read {url} ({e}). Try a different URL or use search_web."
+
+
+@tool
+async def search_web(query: str) -> str:
+    """Search the web (Google-style) and return the top results as JSON with
+    url, title, and snippet for each. Use this when the company website does
+    not have the info, or to discover the right pages to read_url next.
+    Write a natural human query like 'Acme skincare products'."""
+    jina = JinaScraper()
+    try:
+        results = await jina.search(query)
+        logger.info(f"[Jina Agent] search_web('{query}') → {len(results)} results")
+        if not results:
+            return "No results found. Try a different, simpler query."
+        return json.dumps([
+            {"url": r.get("url", ""), "title": r.get("title", ""), "snippet": r.get("content", "")}
+            for r in results
+        ])
+    except Exception as e:
+        logger.warning(f"[Jina Agent] search_web('{query}') failed: {e}")
+        return f"ERROR: search failed ({e}). Try reading the website directly with read_url."
+
+
+AGENT_SYSTEM_PROMPT = """You are a B2B web research agent. Your job: find the exact information requested about a company and return it as ONE valid JSON object.
+
+You have two tools:
+- read_url(url): read a web page's text
+- search_web(query): search Google for results (url + snippet)
+
+STRATEGY:
+1. Start by reading the company homepage.
+2. Look at the links/menu in the homepage text and read the pages most likely to hold the answer (shop, products, collections, about, pricing, etc.).
+3. If the site doesn't have what you need, use search_web with a natural human query, then read_url the best result.
+4. Be efficient — don't read more than ~5-6 pages. Stop as soon as you have enough to answer.
+
+OUTPUT RULES:
+- When done, respond with ONLY the final JSON object. No prose, no markdown fences.
+- Follow the exact field names and rules in the user's request.
+- If a value genuinely can't be found after a reasonable search, use "not found" for that field (unless the user says otherwise).
+- Never invent values."""
+
+
+def _build_agent():
+    settings = get_settings()
+    llm = ChatGoogleGenerativeAI(
+        model=settings.gemini_model,
+        google_api_key=settings.gemini_api_key,
+        temperature=0.2,
+    )
+    return create_react_agent(llm, tools=[read_url, search_web])
+
+
+async def run_jina_agent(
+    data: dict[str, str],
+    prompt_extract: str,
+    website_url: str,
+    max_steps: int = 12,
+) -> dict:
+    """
+    Run the ReAct agent for one company row.
+    Returns {"extracted_answer": <parsed JSON or str>, "steps": int, "messages": [...]}.
+    """
+    agent = _build_agent()
+
+    data_block = "\n".join(f"{k}: {v}" for k, v in data.items())
+    human = (
+        f"Company info we already have:\n{data_block}\n\n"
+        f"Website to start from: {website_url or '(none given — use search_web)'}\n\n"
+        f"What to extract (follow these field rules exactly):\n{prompt_extract}\n\n"
+        f"Research the company and return ONLY the final JSON object."
+    )
+
+    result = await agent.ainvoke(
+        {"messages": [SystemMessage(content=AGENT_SYSTEM_PROMPT), HumanMessage(content=human)]},
+        config={"recursion_limit": max_steps},
+    )
+
+    messages = result.get("messages", [])
+    final_text = messages[-1].content if messages else ""
+    if isinstance(final_text, list):  # Gemini can return content as parts
+        final_text = "".join(p if isinstance(p, str) else p.get("text", "") for p in final_text)
+
+    # Strip code fences and parse
+    text = final_text.strip()
+    if text.startswith("```"):
+        text = text[text.index("\n") + 1:] if "\n" in text else text[3:]
+    if text.endswith("```"):
+        text = text[:text.rfind("```")]
+    text = text.strip()
+
+    parsed = text
+    try:
+        parsed = json.loads(text)
+    except (json.JSONDecodeError, ValueError):
+        pass
+
+    # Count tool calls for visibility
+    tool_calls = sum(
+        1 for m in messages
+        if getattr(m, "tool_calls", None)
+        for _ in m.tool_calls
+    )
+
+    return {
+        "extracted_answer": parsed,
+        "tool_calls": tool_calls,
+        "total_messages": len(messages),
+    }

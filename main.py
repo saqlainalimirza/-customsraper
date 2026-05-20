@@ -13,7 +13,7 @@ from db.supabase_client import SupabaseClient
 from scraper.crawler import DomainCrawler
 from scraper.content import ContentScraper
 from scraper.scrapingbee import ScrapingBeeScraper
-from scraper.jina_scraper import JinaScraper
+from scraper.jina_scraper import JinaScraper, strip_tracking_params
 from ai.openrouter_client import OpenRouterClient
 from ai.base import AIClient
 from utils.logging import setup_logger, log_pipeline_step, log_summary
@@ -757,7 +757,7 @@ async def scrape_jina_test(request: JinaSmartRequest):
     request.normalize()
     logger.info(f"[Jina Smart] Starting pipeline with data keys: {list(request.data.keys())}")
 
-    async def _run(track_a_deadline: float, track_b_deadline: float) -> dict:
+    async def _run(track_a_deadline: float, track_b_deadline: float, max_queries: int = 2) -> dict:
         ai_client = get_ai_client(request.ai_provider)
         jina = JinaScraper()
 
@@ -861,9 +861,9 @@ async def scrape_jina_test(request: JinaSmartRequest):
                         queries = [str(queries)]
                 except (json.JSONDecodeError, TypeError):
                     queries = [query_response.content.strip()]
-                queries = [q.strip() for q in queries if q and q.strip()][:3]
+                queries = [q.strip() for q in queries if q and q.strip()][:max_queries]
                 search_query = " | ".join(queries)  # for logging/response display
-                logger.info(f"[Jina Smart][Track B] {len(queries)} search queries: {queries}")
+                logger.info(f"[Jina Smart][Track B] {len(queries)} search queries (cap {max_queries}): {queries}")
                 if not queries:
                     return "", [], {}
 
@@ -878,8 +878,9 @@ async def scrape_jina_test(request: JinaSmartRequest):
                         continue
                     for item in res:
                         u = item.get("url")
-                        if u and u not in seen_urls:
-                            seen_urls.add(u)
+                        clean = strip_tracking_params(u) if u else u
+                        if u and clean not in seen_urls:
+                            seen_urls.add(clean)
                             merged.append(item)
                 search_results = merged
 
@@ -956,15 +957,20 @@ async def scrape_jina_test(request: JinaSmartRequest):
             try:
                 normalized = jina._normalize_url(website_url)
                 company_host = urlparse(normalized).netloc.lower().lstrip("www.")
-                already_have = set(track_a_result.keys())
+                # Dedupe by tracking-stripped URL so the same page under different
+                # ?srsltid= tags isn't scraped 2-3× (was wasting Reader RPM).
+                already_have = {strip_tracking_params(u) for u in track_a_result.keys()}
+                seen_clean: set[str] = set()
                 salvage_urls: list[str] = []
                 for r in raw_search_results:
                     u = r.get("url")
                     if not u:
                         continue
-                    host = urlparse(u).netloc.lower().lstrip("www.")
-                    if host == company_host and u not in already_have and u not in salvage_urls:
-                        salvage_urls.append(u)
+                    clean = strip_tracking_params(u)
+                    host = urlparse(clean).netloc.lower().lstrip("www.")
+                    if host == company_host and clean not in already_have and clean not in seen_clean:
+                        seen_clean.add(clean)
+                        salvage_urls.append(clean)
                 salvage_urls = salvage_urls[:3]
                 if salvage_urls:
                     logger.info(f"[Jina Smart] Cross-poll: scraping {len(salvage_urls)} same-domain URLs from search: {salvage_urls}")
@@ -1058,10 +1064,12 @@ async def scrape_jina_test(request: JinaSmartRequest):
     # Per-attempt budgets. Attempt 1 is FAST (most rows answer quick). The retry
     # is GENEROUS — full time budget, like a fresh manual rerun — because by the
     # time we're retrying, a slow/complete answer beats a fast NOTFOUND.
-    #   (track_a_deadline, track_b_deadline, outer_timeout)
+    #   (track_a_deadline, track_b_deadline, outer_timeout, max_search_queries)
+    # The retry uses FEWER search queries (1 vs 2) — by the time we retry, Jina
+    # Search is likely rate-limited, so we lighten the load instead of hammering.
     ATTEMPT_BUDGETS = [
-        (18.0, 12.0, 35.0),   # attempt 1 — fast path
-        (45.0, 30.0, 85.0),   # attempt 2 (retry) — generous, like a fresh run
+        (18.0, 12.0, 35.0, 2),   # attempt 1 — fast path, 2 queries
+        (45.0, 30.0, 85.0, 1),   # attempt 2 (retry) — generous time, only 1 query
     ]
     MAX_RETRIES = len(ATTEMPT_BUDGETS)  # 2 full pipeline runs = 1 retry
     RETRY_BACKOFF = 4.0  # gap before the full re-run — long enough for a rate
@@ -1087,10 +1095,10 @@ async def scrape_jina_test(request: JinaSmartRequest):
         }
 
     for attempt in range(1, MAX_RETRIES + 1):
-        track_a_deadline, track_b_deadline, per_attempt_timeout = ATTEMPT_BUDGETS[attempt - 1]
+        track_a_deadline, track_b_deadline, per_attempt_timeout, max_queries = ATTEMPT_BUDGETS[attempt - 1]
         try:
             result = await asyncio.wait_for(
-                _run(track_a_deadline, track_b_deadline),
+                _run(track_a_deadline, track_b_deadline, max_queries),
                 timeout=per_attempt_timeout,
             )
             answer = result.get("extracted_answer", "NOTFOUND")
@@ -1147,6 +1155,62 @@ async def scrape_jina_test(request: JinaSmartRequest):
     if last_result is not None:
         return last_result
     raise HTTPException(status_code=500, detail="Unexpected error in retry loop")
+
+
+@app.post("/scrape/jina-agent")
+async def scrape_jina_agent(request: JinaSmartRequest):
+    """
+    Agentic version: a LangGraph ReAct agent (Gemini) decides what to read and
+    search, using Jina as tools. More flexible navigation than /scrape/jina-test,
+    at higher cost/latency. Same request shape. Never throws on a scrape failure
+    — returns extracted_answer = "NOTFOUND" on any error (like the pipeline).
+    """
+    request.normalize()
+    prompt_extract = request.prompt_extract or request.data.get("prompt_extract", "")
+    if not prompt_extract:
+        raise HTTPException(status_code=422, detail="prompt_extract is required (top-level or inside data)")
+
+    PROMPT_KEYS = {"prompt_extract", "prompt_filter"}
+    clean_data = {k: v for k, v in request.data.items() if k not in PROMPT_KEYS}
+
+    # Reuse the same robust website detection as the pipeline
+    WEBSITE_KEYS = (
+        "website", "url", "domain", "website_url", "site", "homepage",
+        "company_website", "web", "company_url", "company_domain",
+    )
+    website_url = ""
+    for key in WEBSITE_KEYS:
+        if clean_data.get(key):
+            website_url = clean_data[key].strip()
+            break
+    if not website_url:
+        for v in clean_data.values():
+            s = str(v).strip()
+            if (s.startswith(("http://", "https://")) or re.match(r"^[\w.-]+\.[a-z]{2,}(/|$)", s, re.I)) \
+                    and "linkedin.com" not in s.lower():
+                website_url = s
+                break
+    if website_url and not website_url.startswith(("http://", "https://")):
+        website_url = f"https://{website_url}"
+
+    logger.info(f"[Jina Agent] Starting agent for keys={list(clean_data.keys())} website={website_url}")
+
+    from ai.jina_agent import run_jina_agent
+
+    AGENT_TIMEOUT = 90.0  # hard outer cap per row
+    try:
+        result = await asyncio.wait_for(
+            run_jina_agent(clean_data, prompt_extract, website_url),
+            timeout=AGENT_TIMEOUT,
+        )
+        logger.info(f"[Jina Agent] Done in {result.get('tool_calls')} tool calls")
+        return result
+    except asyncio.TimeoutError:
+        logger.warning(f"[Jina Agent] Hit {AGENT_TIMEOUT}s timeout — returning NOTFOUND")
+        return {"extracted_answer": "NOTFOUND", "tool_calls": 0, "error": f"timeout after {AGENT_TIMEOUT}s"}
+    except Exception as e:
+        logger.error(f"[Jina Agent] Failed: {e}")
+        return {"extracted_answer": "NOTFOUND", "tool_calls": 0, "error": str(e)}
 
 
 @app.get("/health")
