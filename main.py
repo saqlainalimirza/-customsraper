@@ -120,7 +120,7 @@ class JinaSmartRequest(BaseModel):
     website: str | None = None  # Top-level fallback
     prompt_extract: str | None = None
     prompt_filter: str | None = None
-    ai_provider: Literal["gpt", "claude", "gemini"] = "gemini"
+    ai_provider: Literal["gpt", "claude", "gemini", "grok"] = "gemini"
 
     def normalize(self) -> "JinaSmartRequest":
         """
@@ -1198,14 +1198,16 @@ async def scrape_jina_agent(request: JinaSmartRequest):
     if website_url and not website_url.startswith(("http://", "https://")):
         website_url = f"https://{website_url}"
 
-    logger.info(f"[Jina Agent] Starting agent for keys={list(clean_data.keys())} website={website_url}")
+    # Provider routing: "grok" → Grok 4.1 Fast (OpenRouter), else Gemini 3 Flash
+    provider = "grok" if request.ai_provider == "grok" else "gemini"
+    logger.info(f"[Jina Agent] Starting agent (provider={provider}) keys={list(clean_data.keys())} website={website_url}")
 
     from ai.jina_agent import run_jina_agent
 
     AGENT_TIMEOUT = float(get_settings().agent_timeout_seconds)  # hard outer cap per row
     try:
         result = await asyncio.wait_for(
-            run_jina_agent(clean_data, prompt_extract, website_url),
+            run_jina_agent(clean_data, prompt_extract, website_url, provider=provider),
             timeout=AGENT_TIMEOUT,
         )
         logger.info(f"[Jina Agent] Done in {result.get('tool_calls')} tool calls")

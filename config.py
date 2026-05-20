@@ -39,6 +39,7 @@ class Settings(BaseSettings):
     gpt_model: str = "openai/gpt-4o-mini"
     claude_model: str = "anthropic/claude-3.5-sonnet"
     gemini_model: str = "gemini-3-flash-preview"  # Gemini 3 Flash (preview ID)
+    grok_model: str = "x-ai/grok-4.1-fast"  # via OpenRouter — built for agentic tool calls
 
     default_ai_provider: str = "gemini"
     max_urls_per_domain: int = 500

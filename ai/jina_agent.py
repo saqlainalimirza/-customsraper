@@ -52,6 +52,20 @@ async def read_url(url: str) -> str:
         return f"ERROR: could not read {url} ({e}). Try a different URL or use search_web."
 
 
+# Social/marketplace/aggregator domains that pollute search results — the agent
+# wastes a read step on these instead of the brand's real pages. Drop them.
+_JUNK_DOMAINS = (
+    "instagram.com", "facebook.com", "youtube.com", "tiktok.com", "pinterest.com",
+    "reddit.com", "linkedin.com", "twitter.com", "x.com", "amazon.com",
+    "etsy.com", "ebay.com", "yelp.com", "wikipedia.org", "crunchbase.com",
+)
+
+
+def _is_junk(url: str) -> bool:
+    u = (url or "").lower()
+    return any(d in u for d in _JUNK_DOMAINS)
+
+
 def _clean_query(q: str) -> str:
     """Strip search operators that make Jina Search 422 or return junk:
     double-quotes, AND/OR, parentheses, and site: filters. Plain words search
@@ -76,9 +90,11 @@ async def search_web(query: str) -> str:
     query = _clean_query(query)
     try:
         results = await jina.search(query)
-        logger.info(f"[Jina Agent] search_web('{query}') → {len(results)} results")
+        # Drop social/marketplace junk so the agent reads real brand pages
+        results = [r for r in results if not _is_junk(r.get("url", ""))]
+        logger.info(f"[Jina Agent] search_web('{query}') → {len(results)} results (junk filtered)")
         if not results:
-            return "No results found. Try a different, simpler query."
+            return "No useful results found. Try a different, simpler query."
         return json.dumps([
             {"url": r.get("url", ""), "title": r.get("title", ""), "snippet": r.get("content", "")}
             for r in results
@@ -114,27 +130,43 @@ OUTPUT RULES:
 - NEVER end your turn without the JSON. Always answer."""
 
 
-def _build_llm():
+def _build_llm(provider: str = "gemini"):
+    """
+    Pick the agent LLM by provider (passed in the API request):
+      - "grok"  → Grok 4.1 Fast via OpenRouter (built for agentic tool calls)
+      - else    → Gemini 3 Flash, native Google API
+    Both run with NO retries (the agent endpoint deliberately avoids the retry path).
+    """
     settings = get_settings()
+
+    if provider == "grok":
+        from langchain_openai import ChatOpenAI
+        return ChatOpenAI(
+            model=settings.grok_model,
+            api_key=settings.openrouter_api_key,
+            base_url=settings.openrouter_base_url,
+            temperature=0.2,
+            max_retries=0,
+            # Grok 4.1 Fast: disable reasoning for speed/cost on bulk extraction
+            model_kwargs={"extra_body": {"reasoning": {"enabled": False}}},
+        )
+
+    # default: Gemini 3 Flash, native
     return ChatGoogleGenerativeAI(
         model=settings.gemini_model,
         google_api_key=settings.gemini_api_key,
         temperature=0.2,
-        # NO retries on the agent — call Gemini once, take the answer. The agent
-        # endpoint exists precisely to avoid the retry path (that's only on
-        # /scrape/jina-test). langchain defaults to max_retries=6; force it to 0.
         max_retries=0,
-        # LOW thinking — faster, cheaper, fewer thinking-tokens. Gemini 3 uses
-        # thinking_level; passed through generation config.
+        # LOW thinking — faster, cheaper, fewer thinking-tokens.
         model_kwargs={"generation_config": {"thinking_config": {"thinking_level": "low"}}},
     )
 
 
-def _build_agent():
-    return create_react_agent(_build_llm(), tools=[read_url, search_web])
+def _build_agent(provider: str = "gemini"):
+    return create_react_agent(_build_llm(provider), tools=[read_url, search_web])
 
 
-async def _force_final_answer(prompt_extract: str, messages: list) -> str:
+async def _force_final_answer(prompt_extract: str, messages: list, provider: str = "gemini") -> str:
     """
     Last resort: the agent ran out of steps without writing JSON. Take every
     page/snippet it gathered (the ToolMessage contents) and do ONE plain LLM
@@ -148,7 +180,7 @@ async def _force_final_answer(prompt_extract: str, messages: list) -> str:
         return ""  # nothing was scraped — caller falls back to NOTFOUND
 
     combined = "\n\n---\n\n".join(gathered)[:30000]
-    llm = _build_llm()
+    llm = _build_llm(provider)
     resp = await llm.ainvoke([
         SystemMessage(content=(
             "You are a data extractor. Based ONLY on the research text provided, "
@@ -172,6 +204,7 @@ async def run_jina_agent(
     data: dict[str, str],
     prompt_extract: str,
     website_url: str,
+    provider: str = "gemini",  # "gemini" (native) or "grok" (OpenRouter)
     max_steps: int = 12,  # langgraph counts EVERY node (LLM + tool) as a step.
     #                       ~12 ≈ 5 tool cycles + final answer. Faster rows = more
     #                       throughput; the forced-final fallback covers cutoffs.
@@ -180,7 +213,7 @@ async def run_jina_agent(
     Run the ReAct agent for one company row.
     Returns {"extracted_answer": <parsed JSON or str>, "steps": int, "messages": [...]}.
     """
-    agent = _build_agent()
+    agent = _build_agent(provider)
 
     data_block = "\n".join(f"{k}: {v}" for k, v in data.items())
     human = (
@@ -221,7 +254,7 @@ async def run_jina_agent(
     forced = False
     if "need more steps" in text.lower() or not text:
         logger.warning("[Jina Agent] Hit step limit — forcing final answer from gathered research")
-        text = (await _force_final_answer(prompt_extract, messages)).strip()
+        text = (await _force_final_answer(prompt_extract, messages, provider)).strip()
         forced = True
         if text.startswith("```"):
             text = text[text.index("\n") + 1:] if "\n" in text else text[3:]
