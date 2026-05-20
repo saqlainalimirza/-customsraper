@@ -98,9 +98,9 @@ OUTPUT RULES:
 - NEVER end your turn without the JSON. Always answer."""
 
 
-def _build_agent():
+def _build_llm():
     settings = get_settings()
-    llm = ChatGoogleGenerativeAI(
+    return ChatGoogleGenerativeAI(
         model=settings.gemini_model,
         google_api_key=settings.gemini_api_key,
         temperature=0.2,
@@ -108,7 +108,44 @@ def _build_agent():
         # thinking_level; passed through generation config.
         model_kwargs={"generation_config": {"thinking_config": {"thinking_level": "low"}}},
     )
-    return create_react_agent(llm, tools=[read_url, search_web])
+
+
+def _build_agent():
+    return create_react_agent(_build_llm(), tools=[read_url, search_web])
+
+
+async def _force_final_answer(prompt_extract: str, messages: list) -> str:
+    """
+    Last resort: the agent ran out of steps without writing JSON. Take every
+    page/snippet it gathered (the ToolMessage contents) and do ONE plain LLM
+    call to synthesize the final JSON. Guarantees an answer instead of NOTFOUND.
+    """
+    gathered = [
+        str(m.content) for m in messages
+        if m.__class__.__name__ == "ToolMessage" and getattr(m, "content", "")
+    ]
+    if not gathered:
+        return ""  # nothing was scraped — caller falls back to NOTFOUND
+
+    combined = "\n\n---\n\n".join(gathered)[:60000]
+    llm = _build_llm()
+    resp = await llm.ainvoke([
+        SystemMessage(content=(
+            "You are a data extractor. Based ONLY on the research text provided, "
+            "output the final JSON answer NOW. No prose, no markdown fences. "
+            "Use \"not found\" for any field you cannot fill from the text."
+        )),
+        HumanMessage(content=(
+            f"Extraction goal (follow field rules exactly):\n{prompt_extract}\n\n"
+            f"Research gathered so far:\n{combined}\n\n"
+            f"Return ONLY the final JSON object now."
+        )),
+    ])
+    out = resp.content
+    if isinstance(out, list):
+        out = "".join(p if isinstance(p, str) else p.get("text", "") for p in out)
+    logger.info("[Jina Agent] Forced final answer from gathered research")
+    return out or ""
 
 
 async def run_jina_agent(
@@ -153,11 +190,27 @@ async def run_jina_agent(
         text = text[:text.rfind("```")]
     text = text.strip()
 
-    # If the agent ran out of steps, langgraph returns an apology string instead
-    # of JSON — surface that as NOTFOUND rather than dumping it as the answer.
+    tool_calls = sum(
+        1 for m in messages
+        if getattr(m, "tool_calls", None)
+        for _ in m.tool_calls
+    )
+
+    # If the agent ran out of steps without writing JSON, DON'T give up —
+    # synthesize a final answer from everything it already gathered.
+    forced = False
     if "need more steps" in text.lower() or not text:
-        logger.warning("[Jina Agent] Hit recursion limit before answering — NOTFOUND")
-        return {"extracted_answer": "NOTFOUND", "tool_calls": 0, "error": "agent hit step limit"}
+        logger.warning("[Jina Agent] Hit step limit — forcing final answer from gathered research")
+        text = (await _force_final_answer(prompt_extract, messages)).strip()
+        forced = True
+        if text.startswith("```"):
+            text = text[text.index("\n") + 1:] if "\n" in text else text[3:]
+        if text.endswith("```"):
+            text = text[:text.rfind("```")]
+        text = text.strip()
+        if not text:
+            return {"extracted_answer": "NOTFOUND", "tool_calls": tool_calls,
+                    "error": "agent hit step limit, nothing gathered"}
 
     parsed = text
     try:
@@ -165,15 +218,9 @@ async def run_jina_agent(
     except (json.JSONDecodeError, ValueError):
         pass
 
-    # Count tool calls for visibility
-    tool_calls = sum(
-        1 for m in messages
-        if getattr(m, "tool_calls", None)
-        for _ in m.tool_calls
-    )
-
     return {
         "extracted_answer": parsed,
         "tool_calls": tool_calls,
         "total_messages": len(messages),
+        "forced_final": forced,
     }
