@@ -157,9 +157,9 @@ async def run_jina_agent(
     data: dict[str, str],
     prompt_extract: str,
     website_url: str,
-    max_steps: int = 16,  # langgraph counts EVERY node (LLM + tool) as a step.
-    #                       ~16 ≈ 7 tool cycles + final answer. Lower = the agent
-    #                       gets cut off mid-research ("need more steps").
+    max_steps: int = 12,  # langgraph counts EVERY node (LLM + tool) as a step.
+    #                       ~12 ≈ 5 tool cycles + final answer. Faster rows = more
+    #                       throughput; the forced-final fallback covers cutoffs.
 ) -> dict:
     """
     Run the ReAct agent for one company row.
