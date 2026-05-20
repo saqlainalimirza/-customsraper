@@ -1218,10 +1218,12 @@ async def scrape_jina_agent(request: JinaSmartRequest):
         return result
     except asyncio.TimeoutError:
         logger.warning(f"[Jina Agent] Hit {AGENT_TIMEOUT}s timeout — returning NOTFOUND")
-        return {"extracted_answer": "NOTFOUND", "tool_calls": 0, "error": f"timeout after {AGENT_TIMEOUT}s"}
+        return {"extracted_answer": "NOTFOUND", "provider": provider, "tool_calls": 0,
+                "forced_final": False, "error": f"timeout after {AGENT_TIMEOUT}s", "raw_text": None}
     except Exception as e:
         logger.error(f"[Jina Agent] Failed: {e}")
-        return {"extracted_answer": "NOTFOUND", "tool_calls": 0, "error": str(e)}
+        return {"extracted_answer": "NOTFOUND", "provider": provider, "tool_calls": 0,
+                "forced_final": False, "error": str(e), "raw_text": None}
 
 
 @app.get("/health")

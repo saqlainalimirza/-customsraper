@@ -203,6 +203,64 @@ def _build_agent(provider: str = "gemini"):
     return create_react_agent(_build_llm(provider), tools=[read_url, search_web])
 
 
+def _extract_json(text: str):
+    """Robustly pull a JSON object out of ANY model's output — handles code
+    fences, leading prose, and trailing junk. Returns a dict, or None if no
+    valid JSON is present. Model-agnostic (Gemini/Grok/Flash Lite all differ)."""
+    if not text:
+        return None
+    t = text.strip()
+    # strip ``` / ```json fences
+    if t.startswith("```"):
+        t = t[t.index("\n") + 1:] if "\n" in t else t[3:]
+    if t.endswith("```"):
+        t = t[:t.rfind("```")]
+    t = t.strip()
+    try:
+        v = json.loads(t)
+        return v if isinstance(v, dict) else {"value": v}
+    except (json.JSONDecodeError, ValueError):
+        pass
+    # fallback: grab the first {...} block
+    import re as _re
+    m = _re.search(r"\{.*\}", t, _re.DOTALL)
+    if m:
+        try:
+            v = json.loads(m.group(0))
+            return v if isinstance(v, dict) else {"value": v}
+        except (json.JSONDecodeError, ValueError):
+            return None
+    return None
+
+
+def _normalize_result(
+    *, raw_text: str, provider: str, tool_calls: int,
+    forced_final: bool = False, error: str | None = None,
+) -> dict:
+    """SINGLE canonical output shape for every model/path. extracted_answer is
+    ALWAYS either a parsed JSON dict or the string "NOTFOUND" — never raw model
+    prose — so downstream (Clay) gets one predictable structure every time."""
+    parsed = _extract_json(raw_text)
+    if parsed is None:
+        # couldn't parse JSON from the model — treat as not found, keep raw for debugging
+        return {
+            "extracted_answer": "NOTFOUND",
+            "provider": provider,
+            "tool_calls": tool_calls,
+            "forced_final": forced_final,
+            "error": error or "model returned no parseable JSON",
+            "raw_text": (raw_text or "")[:2000],
+        }
+    return {
+        "extracted_answer": parsed,
+        "provider": provider,
+        "tool_calls": tool_calls,
+        "forced_final": forced_final,
+        "error": error,
+        "raw_text": None,
+    }
+
+
 async def _force_final_answer(prompt_extract: str, messages: list, provider: str = "gemini") -> str:
     """
     Last resort: the agent ran out of steps without writing JSON. Take every
@@ -269,16 +327,9 @@ async def run_jina_agent(
 
     messages = result.get("messages", [])
     final_text = messages[-1].content if messages else ""
-    if isinstance(final_text, list):  # Gemini can return content as parts
+    if isinstance(final_text, list):  # some models return content as parts
         final_text = "".join(p if isinstance(p, str) else p.get("text", "") for p in final_text)
-
-    # Strip code fences and parse
-    text = final_text.strip()
-    if text.startswith("```"):
-        text = text[text.index("\n") + 1:] if "\n" in text else text[3:]
-    if text.endswith("```"):
-        text = text[:text.rfind("```")]
-    text = text.strip()
+    text = (final_text or "").strip()
 
     tool_calls = sum(
         1 for m in messages
@@ -293,24 +344,8 @@ async def run_jina_agent(
         logger.warning("[Jina Agent] Hit step limit — forcing final answer from gathered research")
         text = (await _force_final_answer(prompt_extract, messages, provider)).strip()
         forced = True
-        if text.startswith("```"):
-            text = text[text.index("\n") + 1:] if "\n" in text else text[3:]
-        if text.endswith("```"):
-            text = text[:text.rfind("```")]
-        text = text.strip()
-        if not text:
-            return {"extracted_answer": "NOTFOUND", "tool_calls": tool_calls,
-                    "error": "agent hit step limit, nothing gathered"}
 
-    parsed = text
-    try:
-        parsed = json.loads(text)
-    except (json.JSONDecodeError, ValueError):
-        pass
-
-    return {
-        "extracted_answer": parsed,
-        "tool_calls": tool_calls,
-        "total_messages": len(messages),
-        "forced_final": forced,
-    }
+    # SINGLE canonical structure for every model/path.
+    return _normalize_result(
+        raw_text=text, provider=provider, tool_calls=tool_calls, forced_final=forced,
+    )
