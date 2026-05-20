@@ -52,12 +52,17 @@ class JinaScraper:
         self.settings = get_settings()
 
     def _build_headers(self, keep_links: bool = False) -> dict:
+        # Always return clean MARKDOWN (structured + far more compact than raw
+        # text/HTML) and strip the heavy stuff that bloats tokens/memory:
+        #   X-Retain-Images: none  → drop image markdown & data-URIs (huge saver)
+        #   X-With-Images-Summary off, no links summary dump
+        # keep_links is kept for call-site compatibility; markdown always carries
+        # [text](url) links inline, which is what link discovery + the agent need.
         headers = {
             "Accept": "text/plain",
+            "X-Return-Format": "markdown",
+            "X-Retain-Images": "none",
         }
-        if not keep_links:
-            headers["X-Return-Format"] = "text"
-        # keep_links=True → omit X-Return-Format so Jina returns markdown with [text](url) links intact
         if self.settings.jina_api_key:
             headers["Authorization"] = f"Bearer {self.settings.jina_api_key}"
         return headers

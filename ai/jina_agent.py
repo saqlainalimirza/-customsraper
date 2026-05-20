@@ -14,6 +14,7 @@ Bounded by recursion_limit (max tool steps) + an outer asyncio timeout in the
 endpoint, so a single row can never run away.
 """
 import json
+import asyncio
 
 from langchain_core.tools import tool
 from langchain_core.messages import SystemMessage, HumanMessage
@@ -26,6 +27,14 @@ from utils.logging import setup_logger
 
 logger = setup_logger(__name__)
 
+# ReAct keeps every tool result in context and re-sends it each step, so big
+# page dumps blow up tokens-per-minute (TPM). Trim hard.
+TOOL_OUTPUT_CHARS = 6000
+
+# Cap concurrent agent runs so parallel rows don't burst past the Gemini TPM
+# limit all at once. Module-level → shared across all requests.
+_AGENT_SEMAPHORE = asyncio.Semaphore(3)
+
 
 @tool
 async def read_url(url: str) -> str:
@@ -35,8 +44,8 @@ async def read_url(url: str) -> str:
     jina = JinaScraper()
     try:
         content = await jina.scrape_url(url, keep_links=True)
-        logger.info(f"[Jina Agent] read_url({url}) → {len(content)} chars")
-        return content[:18000]
+        logger.info(f"[Jina Agent] read_url({url}) → {len(content)} chars (trimmed to {TOOL_OUTPUT_CHARS})")
+        return content[:TOOL_OUTPUT_CHARS]
     except Exception as e:
         logger.warning(f"[Jina Agent] read_url({url}) failed: {e}")
         return f"ERROR: could not read {url} ({e}). Try a different URL or use search_web."
@@ -96,7 +105,7 @@ async def run_jina_agent(
     data: dict[str, str],
     prompt_extract: str,
     website_url: str,
-    max_steps: int = 12,
+    max_steps: int = 6,
 ) -> dict:
     """
     Run the ReAct agent for one company row.
@@ -112,10 +121,12 @@ async def run_jina_agent(
         f"Research the company and return ONLY the final JSON object."
     )
 
-    result = await agent.ainvoke(
-        {"messages": [SystemMessage(content=AGENT_SYSTEM_PROMPT), HumanMessage(content=human)]},
-        config={"recursion_limit": max_steps},
-    )
+    # Throttle concurrent agents to stay under the Gemini TPM ceiling
+    async with _AGENT_SEMAPHORE:
+        result = await agent.ainvoke(
+            {"messages": [SystemMessage(content=AGENT_SYSTEM_PROMPT), HumanMessage(content=human)]},
+            config={"recursion_limit": max_steps},
+        )
 
     messages = result.get("messages", [])
     final_text = messages[-1].content if messages else ""
