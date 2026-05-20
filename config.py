@@ -33,8 +33,8 @@ class Settings(BaseSettings):
     # Concurrency must be high enough to match Clay's burst size, or queued rows
     # blow their timeout while WAITING for a slot. Raise if you see mass timeouts;
     # lower only if you start hitting Gemini TPM again.
-    agent_concurrency: int = 50
-    agent_timeout_seconds: int = 120
+    agent_concurrency: int = 30
+    agent_timeout_seconds: int = 110  # keep under Railway's edge proxy timeout
 
     gpt_model: str = "openai/gpt-4o-mini"
     claude_model: str = "anthropic/claude-3.5-sonnet"

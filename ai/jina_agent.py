@@ -28,8 +28,8 @@ from utils.logging import setup_logger
 logger = setup_logger(__name__)
 
 # ReAct keeps every tool result in context and re-sends it each step, so big
-# page dumps blow up tokens-per-minute (TPM). Trim hard.
-TOOL_OUTPUT_CHARS = 6000
+# page dumps blow up tokens-per-minute (TPM) AND memory. Trim hard.
+TOOL_OUTPUT_CHARS = 4000
 
 # Cap concurrent agent runs (module-level → shared across all requests). Must be
 # high enough to match Clay's burst, or queued rows time out WAITING for a slot.
@@ -147,7 +147,7 @@ async def _force_final_answer(prompt_extract: str, messages: list) -> str:
     if not gathered:
         return ""  # nothing was scraped — caller falls back to NOTFOUND
 
-    combined = "\n\n---\n\n".join(gathered)[:60000]
+    combined = "\n\n---\n\n".join(gathered)[:30000]
     llm = _build_llm()
     resp = await llm.ainvoke([
         SystemMessage(content=(
