@@ -1202,7 +1202,7 @@ async def scrape_jina_agent(request: JinaSmartRequest):
 
     from ai.jina_agent import run_jina_agent
 
-    AGENT_TIMEOUT = 90.0  # hard outer cap per row
+    AGENT_TIMEOUT = float(get_settings().agent_timeout_seconds)  # hard outer cap per row
     try:
         result = await asyncio.wait_for(
             run_jina_agent(clean_data, prompt_extract, website_url),

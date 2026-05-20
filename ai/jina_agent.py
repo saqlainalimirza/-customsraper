@@ -31,11 +31,10 @@ logger = setup_logger(__name__)
 # page dumps blow up tokens-per-minute (TPM). Trim hard.
 TOOL_OUTPUT_CHARS = 6000
 
-# Cap concurrent agent runs so parallel rows don't burst past the Gemini TPM
-# limit all at once. Module-level → shared across all requests. Kept low (2)
-# because each agent re-sends its growing context every step — parallel agents
-# stack tokens-per-minute fast and trip the 1M TPM ceiling.
-_AGENT_SEMAPHORE = asyncio.Semaphore(2)
+# Cap concurrent agent runs (module-level → shared across all requests). Must be
+# high enough to match Clay's burst, or queued rows time out WAITING for a slot.
+# Tune via AGENT_CONCURRENCY env. Lower only if Gemini TPM becomes a problem.
+_AGENT_SEMAPHORE = asyncio.Semaphore(get_settings().agent_concurrency)
 
 
 @tool

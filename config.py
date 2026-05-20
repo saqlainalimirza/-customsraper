@@ -29,6 +29,13 @@ class Settings(BaseSettings):
         ".modal-popup,.newsletter-popup,.popup-overlay,[class*=cookie-consent]"
     )
 
+    # LangGraph agent tuning (env: AGENT_CONCURRENCY, AGENT_TIMEOUT_SECONDS).
+    # Concurrency must be high enough to match Clay's burst size, or queued rows
+    # blow their timeout while WAITING for a slot. Raise if you see mass timeouts;
+    # lower only if you start hitting Gemini TPM again.
+    agent_concurrency: int = 20
+    agent_timeout_seconds: int = 120
+
     gpt_model: str = "openai/gpt-4o-mini"
     claude_model: str = "anthropic/claude-3.5-sonnet"
     gemini_model: str = "gemini-3-flash-preview"  # Gemini 3 Flash (preview ID)
