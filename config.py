@@ -16,6 +16,19 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
     gemini_base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai/"
 
+    # Jina Reader tuning (env-overridable: JINA_TOKEN_BUDGET, JINA_TIMEOUT)
+    # Token budget is a CIRCUIT BREAKER — a page bigger than this FAILS the fetch
+    # (not truncates). Keeps monster pages from blowing the Gemini TPM. Generous
+    # default so normal product pages pass; only giant pages get rejected.
+    jina_token_budget: int = 60000
+    jina_timeout: int = 15  # seconds Jina waits for the page to load
+    # Strip noise but KEEP nav (link discovery) + footer (B2B/wholesale/"powered
+    # by" signals). Removes videos, cookie banners, popups, newsletter modals.
+    jina_remove_selector: str = (
+        "video,iframe,.cookie,#cookie-banner,[aria-label*=cookie],"
+        ".modal-popup,.newsletter-popup,.popup-overlay,[class*=cookie-consent]"
+    )
+
     gpt_model: str = "openai/gpt-4o-mini"
     claude_model: str = "anthropic/claude-3.5-sonnet"
     gemini_model: str = "gemini-3-flash-preview"  # Gemini 3 Flash (preview ID)

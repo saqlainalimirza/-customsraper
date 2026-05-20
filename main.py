@@ -42,6 +42,11 @@ BATCH_DELAY = 2.0  # Delay between batches to prevent rate limits
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting AI Web Scraper API")
+    _s = get_settings()
+    logger.info(
+        f"[startup] resolved models → gemini={_s.gemini_model} | gpt={_s.gpt_model} | "
+        f"claude={_s.claude_model} | default_provider={_s.default_ai_provider}"
+    )
     yield
     logger.info("Shutting down AI Web Scraper API")
 

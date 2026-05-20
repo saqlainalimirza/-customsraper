@@ -32,8 +32,10 @@ logger = setup_logger(__name__)
 TOOL_OUTPUT_CHARS = 6000
 
 # Cap concurrent agent runs so parallel rows don't burst past the Gemini TPM
-# limit all at once. Module-level → shared across all requests.
-_AGENT_SEMAPHORE = asyncio.Semaphore(3)
+# limit all at once. Module-level → shared across all requests. Kept low (2)
+# because each agent re-sends its growing context every step — parallel agents
+# stack tokens-per-minute fast and trip the 1M TPM ceiling.
+_AGENT_SEMAPHORE = asyncio.Semaphore(2)
 
 
 @tool
@@ -104,6 +106,10 @@ def _build_llm():
         model=settings.gemini_model,
         google_api_key=settings.gemini_api_key,
         temperature=0.2,
+        # NO retries on the agent — call Gemini once, take the answer. The agent
+        # endpoint exists precisely to avoid the retry path (that's only on
+        # /scrape/jina-test). langchain defaults to max_retries=6; force it to 0.
+        max_retries=0,
         # LOW thinking — faster, cheaper, fewer thinking-tokens. Gemini 3 uses
         # thinking_level; passed through generation config.
         model_kwargs={"generation_config": {"thinking_config": {"thinking_level": "low"}}},

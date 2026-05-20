@@ -62,7 +62,14 @@ class JinaScraper:
             "Accept": "text/plain",
             "X-Return-Format": "markdown",
             "X-Retain-Images": "none",
+            # Circuit breaker: pages bigger than the budget FAIL (caught upstream)
+            # instead of flooding the LLM and blowing TPM.
+            "X-Token-Budget": str(self.settings.jina_token_budget),
+            "X-Timeout": str(self.settings.jina_timeout),
         }
+        # Strip noise (videos/cookie banners/popups), keep nav + footer.
+        if self.settings.jina_remove_selector:
+            headers["X-Remove-Selector"] = self.settings.jina_remove_selector
         if self.settings.jina_api_key:
             headers["Authorization"] = f"Bearer {self.settings.jina_api_key}"
         return headers
