@@ -134,21 +134,24 @@ class OpenRouterClient(AIClient):
             content=combined_content,
         )
         
-        response = await self.client.chat.completions.create(
-            model=self.model,
-            messages=[
+        # No max_tokens for Gemini — let it use its full output budget. Only cap
+        # the OpenRouter models (where a missing cap can truncate big JSON).
+        create_kwargs = {
+            "model": self.model,
+            "messages": [
                 {"role": "system", "content": EXTRACT_ANSWER_SYSTEM_PROMPT},
                 {"role": "user", "content": user_message},
             ],
-            temperature=0.2,
-            # Big extraction prompts (e.g. all_products with dozens of items)
-            # were getting cut off mid-JSON → unparseable. Give plenty of room.
-            max_tokens=8000,
-            extra_headers={
+            "temperature": 0.2,
+            "extra_headers": {
                 "HTTP-Referer": "https://scaletopia.com",
                 "X-Title": "Scaletopia Web Scraper",
             },
-        )
+        }
+        if self.model_type != "gemini":
+            create_kwargs["max_tokens"] = 8000
+
+        response = await self.client.chat.completions.create(**create_kwargs)
         
         content = response.choices[0].message.content or ""
         input_tokens = response.usage.prompt_tokens if response.usage else 0
