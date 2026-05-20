@@ -82,13 +82,20 @@ STRATEGY:
 1. Start by reading the company homepage.
 2. Look at the links/menu in the homepage text and read the pages most likely to hold the answer (shop, products, collections, about, pricing, etc.).
 3. If the site doesn't have what you need, use search_web with a natural human query, then read_url the best result.
-4. Be efficient — don't read more than ~5-6 pages. Stop as soon as you have enough to answer.
+4. Be efficient — read AT MOST 4-5 pages total. You have a LIMITED number of steps.
+
+CRITICAL — YOU MUST ALWAYS PRODUCE A FINAL ANSWER:
+- You have a limited step budget. Do NOT keep researching forever.
+- After ~4-5 tool calls, STOP calling tools and write the final JSON immediately.
+- It is ALWAYS better to answer with partial data than to run out of steps with no answer.
+- For any field you could not find, put "not found" (unless the user's rules say otherwise) — but STILL return the complete JSON object.
+- Your VERY LAST message must be the final JSON answer, nothing else.
 
 OUTPUT RULES:
-- When done, respond with ONLY the final JSON object. No prose, no markdown fences.
+- Respond with ONLY the final JSON object. No prose, no markdown fences.
 - Follow the exact field names and rules in the user's request.
-- If a value genuinely can't be found after a reasonable search, use "not found" for that field (unless the user says otherwise).
-- Never invent values."""
+- Never invent values — use "not found" for anything you couldn't confirm.
+- NEVER end your turn without the JSON. Always answer."""
 
 
 def _build_agent():
@@ -108,7 +115,9 @@ async def run_jina_agent(
     data: dict[str, str],
     prompt_extract: str,
     website_url: str,
-    max_steps: int = 6,
+    max_steps: int = 16,  # langgraph counts EVERY node (LLM + tool) as a step.
+    #                       ~16 ≈ 7 tool cycles + final answer. Lower = the agent
+    #                       gets cut off mid-research ("need more steps").
 ) -> dict:
     """
     Run the ReAct agent for one company row.
@@ -143,6 +152,12 @@ async def run_jina_agent(
     if text.endswith("```"):
         text = text[:text.rfind("```")]
     text = text.strip()
+
+    # If the agent ran out of steps, langgraph returns an apology string instead
+    # of JSON — surface that as NOTFOUND rather than dumping it as the answer.
+    if "need more steps" in text.lower() or not text:
+        logger.warning("[Jina Agent] Hit recursion limit before answering — NOTFOUND")
+        return {"extracted_answer": "NOTFOUND", "tool_calls": 0, "error": "agent hit step limit"}
 
     parsed = text
     try:
