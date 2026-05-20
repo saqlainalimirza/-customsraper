@@ -52,13 +52,28 @@ async def read_url(url: str) -> str:
         return f"ERROR: could not read {url} ({e}). Try a different URL or use search_web."
 
 
+def _clean_query(q: str) -> str:
+    """Strip search operators that make Jina Search 422 or return junk:
+    double-quotes, AND/OR, parentheses, and site: filters. Plain words search
+    far better and never error."""
+    import re as _re
+    q = q.replace('"', " ").replace("(", " ").replace(")", " ")
+    q = _re.sub(r"\bsite:\S+", " ", q, flags=_re.I)   # drop site:domain
+    q = _re.sub(r"\b(OR|AND)\b", " ", q)               # drop boolean ops
+    q = _re.sub(r"\s+", " ", q).strip()
+    return q
+
+
 @tool
 async def search_web(query: str) -> str:
-    """Search the web (Google-style) and return the top results as JSON with
-    url, title, and snippet for each. Use this when the company website does
-    not have the info, or to discover the right pages to read_url next.
-    Write a natural human query like 'Acme skincare products'."""
+    """Search the web and return the top results as JSON with url, title, and
+    snippet for each. Use this when the company website does not have the info,
+    or to discover the right pages to read_url next.
+    Write a SIMPLE, NATURAL query like 'Acme skincare products' or
+    'Acme wholesale'. Do NOT use quotes, site:, OR, AND, or parentheses —
+    plain keywords work best and operator queries fail."""
     jina = JinaScraper()
+    query = _clean_query(query)
     try:
         results = await jina.search(query)
         logger.info(f"[Jina Agent] search_web('{query}') → {len(results)} results")
@@ -79,11 +94,11 @@ You have two tools:
 - read_url(url): read a web page's text
 - search_web(query): search Google for results (url + snippet)
 
-STRATEGY:
-1. Start by reading the company homepage.
-2. Look at the links/menu in the homepage text and read the pages most likely to hold the answer (shop, products, collections, about, pricing, etc.).
-3. If the site doesn't have what you need, use search_web with a natural human query, then read_url the best result.
-4. Be efficient — read AT MOST 4-5 pages total. You have a LIMITED number of steps.
+STRATEGY (be FAST — you have a tight step budget):
+1. Read the company homepage first.
+2. From the homepage links, read the ONE best products/shop/collections page. That + the homepage usually answers everything — then ANSWER.
+3. Only use search_web if the website genuinely lacks the info (e.g. wholesale/B2B). When you do, use a SIMPLE keyword query (e.g. "Acme wholesale") — never quotes/site:/OR.
+4. Read 2-3 pages total, then STOP and write the JSON. Do NOT keep searching for every field — fill unknowns with "not found".
 
 CRITICAL — YOU MUST ALWAYS PRODUCE A FINAL ANSWER:
 - You have a limited step budget. Do NOT keep researching forever.
