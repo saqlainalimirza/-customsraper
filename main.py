@@ -799,9 +799,7 @@ async def scrape_jina_test(request: JinaSmartRequest):
                     break
 
         # ── TRACK A: Direct website scrape + 1-hop agentic link discovery ────
-        # Goal: extraction goals like "case studies" live on subpages with
-        # unpredictable names (/work, /portfolio, /what-we-do, ...). We fetch
-        # the homepage in markdown (links intact), let the LLM pick up to 3
+        # Fetch the homepage in markdown (links intact), let the LLM pick up to 4
         # relevant internal links, and Jina-read those in parallel.
         async def run_track_a() -> tuple[dict[str, str], list[str]]:
             if not website_url:
@@ -856,7 +854,7 @@ async def scrape_jina_test(request: JinaSmartRequest):
 
             return result, picked_urls
 
-        # ── TRACK B: Search → parallel read ───────────────────────────────────
+        # ── TRACK B: Web search → parallel read (INDEPENDENT of Track A) ──────
         async def run_track_b() -> tuple[str, list[dict], dict[str, str]]:
             try:
                 query_response = await ai_client.generate_search_query(clean_data, prompt_extract)
@@ -867,12 +865,11 @@ async def scrape_jina_test(request: JinaSmartRequest):
                 except (json.JSONDecodeError, TypeError):
                     queries = [query_response.content.strip()]
                 queries = [q.strip() for q in queries if q and q.strip()][:max_queries]
-                search_query = " | ".join(queries)  # for logging/response display
+                search_query = " | ".join(queries)
                 logger.info(f"[Jina Smart][Track B] {len(queries)} search queries (cap {max_queries}): {queries}")
                 if not queries:
                     return "", [], {}
 
-                # Run all queries in parallel, then merge + dedupe results by URL
                 search_tasks = [jina.search(q) for q in queries]
                 per_query = await asyncio.gather(*search_tasks, return_exceptions=True)
                 merged: list[dict] = []
@@ -899,8 +896,7 @@ async def scrape_jina_test(request: JinaSmartRequest):
                 ]
                 logger.info(f"[Jina Smart][Track B] {len(raw_search_results)} merged results: {[r['url'] for r in raw_search_results]}")
 
-                # Actually SCRAPE the top 2 search results — passing only snippets
-                # to the LLM was the #1 cause of false NOTFOUND. Snippet ≠ page.
+                # Scrape the top 2 results (snippet ≠ page); rest stay snippet-only
                 top_urls = [r["url"] for r in search_results[:2] if r.get("url")]
                 snippet_lookup = {
                     r["url"]: f"[Title]: {r.get('title', '')}\n[Snippet]: {r.get('content', '')}"
@@ -908,16 +904,14 @@ async def scrape_jina_test(request: JinaSmartRequest):
                 }
                 content_map: dict[str, str] = {}
                 if top_urls:
-                    scrape_tasks = [jina.scrape_url(u) for u in top_urls]
-                    scrape_results = await asyncio.gather(*scrape_tasks, return_exceptions=True)
+                    scrape_results = await asyncio.gather(*[jina.scrape_url(u) for u in top_urls], return_exceptions=True)
                     for url, res in zip(top_urls, scrape_results):
                         if isinstance(res, Exception):
-                            logger.warning(f"[Jina Smart][Track B] Scrape failed for {url}: {res} — falling back to snippet")
+                            logger.warning(f"[Jina Smart][Track B] Scrape failed for {url}: {res} — using snippet")
                             content_map[url] = snippet_lookup.get(url, "")
                         else:
                             content_map[url] = res
                             logger.info(f"[Jina Smart][Track B] Scraped {len(res)} chars from {url}")
-                # Remaining results (3rd, 4th, 5th) keep snippet-only — better than nothing
                 for r in search_results[2:]:
                     url = r.get("url")
                     if url and url not in content_map:

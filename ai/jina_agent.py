@@ -52,32 +52,6 @@ async def read_url(url: str) -> str:
         return f"ERROR: could not read {url} ({e}). Try a different URL or use search_web."
 
 
-# Social/marketplace/aggregator domains that pollute search results — the agent
-# wastes a read step on these instead of the brand's real pages. Drop them.
-_JUNK_DOMAINS = (
-    "instagram.com", "facebook.com", "youtube.com", "tiktok.com", "pinterest.com",
-    "reddit.com", "linkedin.com", "twitter.com", "x.com", "amazon.com",
-    "etsy.com", "ebay.com", "yelp.com", "wikipedia.org", "crunchbase.com",
-)
-
-
-def _is_junk(url: str) -> bool:
-    u = (url or "").lower()
-    return any(d in u for d in _JUNK_DOMAINS)
-
-
-def _clean_query(q: str) -> str:
-    """Strip search operators that make Jina Search 422 or return junk:
-    double-quotes, AND/OR, parentheses, and site: filters. Plain words search
-    far better and never error."""
-    import re as _re
-    q = q.replace('"', " ").replace("(", " ").replace(")", " ")
-    q = _re.sub(r"\bsite:\S+", " ", q, flags=_re.I)   # drop site:domain
-    q = _re.sub(r"\b(OR|AND)\b", " ", q)               # drop boolean ops
-    q = _re.sub(r"\s+", " ", q).strip()
-    return q
-
-
 @tool
 async def search_web(query: str) -> str:
     """Search the web and return the top results as JSON with url, title, and
@@ -87,12 +61,11 @@ async def search_web(query: str) -> str:
     'Acme wholesale'. Do NOT use quotes, site:, OR, AND, or parentheses —
     plain keywords work best and operator queries fail."""
     jina = JinaScraper()
-    query = _clean_query(query)
+    # NOTE: query sanitizing + junk-domain filtering now happen inside
+    # JinaScraper.search() so the pipeline gets them too — no need to repeat here.
     try:
         results = await jina.search(query)
-        # Drop social/marketplace junk so the agent reads real brand pages
-        results = [r for r in results if not _is_junk(r.get("url", ""))]
-        logger.info(f"[Jina Agent] search_web('{query}') → {len(results)} results (junk filtered)")
+        logger.info(f"[Jina Agent] search_web('{query}') → {len(results)} results")
         if not results:
             return "No useful results found. Try a different, simpler query."
         return json.dumps([

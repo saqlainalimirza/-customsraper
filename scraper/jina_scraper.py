@@ -40,6 +40,32 @@ def strip_tracking_params(url: str) -> str:
         return url
 
 
+# Social/marketplace/aggregator domains that pollute search results — a wasted
+# read. Filtered from EVERY search (pipeline + agent).
+_JUNK_DOMAINS = (
+    "instagram.com", "facebook.com", "youtube.com", "tiktok.com", "pinterest.com",
+    "reddit.com", "linkedin.com", "twitter.com", "x.com", "amazon.com",
+    "etsy.com", "ebay.com", "yelp.com", "wikipedia.org", "crunchbase.com",
+)
+
+
+def is_junk_url(url: str) -> bool:
+    u = (url or "").lower()
+    return any(d in u for d in _JUNK_DOMAINS)
+
+
+def clean_search_query(q: str) -> str:
+    """Strip operators that make Jina Search 422 or return junk: double-quotes,
+    AND/OR, parentheses, site: filters. Plain words search better and never error."""
+    if not q:
+        return q
+    q = q.replace('"', " ").replace("(", " ").replace(")", " ")
+    q = re.sub(r"\bsite:\S+", " ", q, flags=re.I)
+    q = re.sub(r"\b(OR|AND)\b", " ", q)
+    q = re.sub(r"\s+", " ", q).strip()
+    return q
+
+
 class JinaScraper:
     """
     Scrapes URLs via Jina Reader API (r.jina.ai).
@@ -93,8 +119,9 @@ class JinaScraper:
         url = strip_tracking_params(url)  # avoid scraping the same page under srsltid variants
         jina_url = f"{JINA_READER_BASE}{url}"
 
+        _client_timeout = float(self.settings.jina_timeout) + 5.0  # above Jina's own timeout
         async with _READER_SEMAPHORE:
-            async with httpx.AsyncClient(timeout=12.0, follow_redirects=True) as client:
+            async with httpx.AsyncClient(timeout=_client_timeout, follow_redirects=True) as client:
                 log_request(logger, "GET", jina_url, extra={"provider": "jina"})
                 response = await client.get(jina_url, headers=self._build_headers(keep_links=keep_links))
                 response.raise_for_status()
@@ -185,8 +212,10 @@ class JinaScraper:
     async def search(self, query: str) -> list[dict]:
         """
         Search the web via Jina Search (s.jina.ai) and return up to 5 results.
-        Each result: {url, title, content}
+        Each result: {url, title, content}. Query is sanitized (no operators) and
+        junk/social domains are filtered — applies to BOTH pipeline and agent.
         """
+        query = clean_search_query(query)
         search_url = f"{JINA_SEARCH_BASE}?q={quote(query)}"
         headers = {
             "Accept": "application/json",
@@ -195,8 +224,11 @@ class JinaScraper:
         if self.settings.jina_api_key:
             headers["Authorization"] = f"Bearer {self.settings.jina_api_key}"
 
+        # httpx timeout sits just above Jina's own page-load timeout so the
+        # client doesn't abort before Jina itself does.
+        _client_timeout = float(self.settings.jina_timeout) + 5.0
         async with _SEARCH_SEMAPHORE:
-          async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+          async with httpx.AsyncClient(timeout=_client_timeout, follow_redirects=True) as client:
             log_request(logger, "GET", search_url, extra={"provider": "jina-search"})
             response = await client.get(search_url, headers=headers)
             response.raise_for_status()
@@ -222,8 +254,8 @@ class JinaScraper:
                     "content": item.get("description", item.get("content", "")),
                 }
                 for item in items
-                if item.get("url")
+                if item.get("url") and not is_junk_url(item.get("url", ""))
             ]
 
-            logger.info(f"[Jina Search] '{query[:60]}' → {len(results)} results: {[r['url'] for r in results]}")
+            logger.info(f"[Jina Search] '{query[:60]}' → {len(results)} results (junk filtered): {[r['url'] for r in results]}")
             return results[:5]
