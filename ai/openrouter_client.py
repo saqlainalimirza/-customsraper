@@ -26,28 +26,16 @@ class OpenRouterClient(AIClient):
                         using the direct GEMINI_API_KEY
     """
 
-    def __init__(self, model_type: str = "gpt"):
+    def __init__(self, model_type: str = "gemini"):
+        from .model_registry import resolve
         self.settings = get_settings()
 
-        if model_type == "gemini":
-            # Direct Google Gemini — NOT via OpenRouter. Uses GEMINI_API_KEY.
-            self.client = AsyncOpenAI(
-                api_key=self.settings.gemini_api_key,
-                base_url=self.settings.gemini_base_url,
-            )
-            self.model = self.settings.gemini_model
-        else:
-            self.client = AsyncOpenAI(
-                api_key=self.settings.openrouter_api_key,
-                base_url=self.settings.openrouter_base_url,
-            )
-            self.model = self.settings.claude_model if model_type == "claude" else self.settings.gpt_model
-
-        self.model_type = model_type
-        # Gemini: run with LOW thinking — faster + far fewer thinking-tokens (TPM).
-        # Passed via extra_body so it goes straight into the request body that
-        # Google's OpenAI-compat endpoint reads.
-        self.extra_body = {"reasoning_effort": "low"} if model_type == "gemini" else None
+        # model_type is now any alias/mix string — resolved via the shared registry
+        cfg = resolve(model_type)
+        self.client = AsyncOpenAI(api_key=cfg["api_key"], base_url=cfg["base_url"])
+        self.model = cfg["model"]
+        self.model_type = cfg["key"]
+        self.extra_body = cfg["extra_body"]
 
     async def filter_urls(
         self,

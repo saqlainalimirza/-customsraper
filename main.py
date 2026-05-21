@@ -164,12 +164,8 @@ class DirectScrapeResponse(BaseModel):
 
 
 def get_ai_client(provider: str) -> AIClient:
-    # ai_provider is free-form now (agent supports aliases/mix). The pipeline
-    # only knows gpt/claude/gemini — anything else falls back to gemini.
-    p = (provider or "").strip().lower()
-    if p in ("gpt", "claude", "gemini"):
-        return OpenRouterClient(model_type=p)
-    return OpenRouterClient(model_type="gemini")
+    # Any alias/mix string — resolved via the shared model registry inside the client.
+    return OpenRouterClient(model_type=provider or "gemini")
 
 
 def extract_domain(domain_or_url: str) -> str:

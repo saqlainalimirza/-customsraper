@@ -11,12 +11,12 @@ logger = setup_logger(__name__)
 JINA_READER_BASE = "https://r.jina.ai/"
 JINA_SEARCH_BASE = "https://s.jina.ai/"
 
-# Global throttles shared across ALL JinaScraper instances (every row makes its
-# own instance, so these MUST live at module level). With 30 parallel rows ×
-# multiple calls each, bursting all at once is what triggered 120× HTTP 429 on
-# s.jina.ai. Capping concurrency spaces the calls so they stop tripping limits.
-_SEARCH_SEMAPHORE = asyncio.Semaphore(5)   # s.jina.ai — strict, low RPM
-_READER_SEMAPHORE = asyncio.Semaphore(20)  # r.jina.ai — higher RPM, looser cap
+# Global throttles shared across ALL JinaScraper instances AND both endpoints
+# (pipeline + agent). MUST live at module level so every row shares them. Sizes
+# from settings (env-tunable: JINA_READER_CONCURRENCY / JINA_SEARCH_CONCURRENCY).
+_jina_settings = get_settings()
+_SEARCH_SEMAPHORE = asyncio.Semaphore(_jina_settings.jina_search_concurrency)  # s.jina.ai — tighter
+_READER_SEMAPHORE = asyncio.Semaphore(_jina_settings.jina_reader_concurrency)  # r.jina.ai — generous
 
 # Tracking params that create duplicate URLs (same page, different tag) — Google
 # Shopping's srsltid is the big one in the logs; strip so we don't scrape a page

@@ -22,6 +22,11 @@ class Settings(BaseSettings):
     # default so normal product pages pass; only giant pages get rejected.
     jina_token_budget: int = 60000
     jina_timeout: int = 15  # seconds Jina waits for the page to load
+    # Global Jina concurrency caps (shared by pipeline AND agent). Reader has a
+    # high RPM ceiling (~5000) so we can be generous; Search is tighter, keep low.
+    # Raise via JINA_READER_CONCURRENCY / JINA_SEARCH_CONCURRENCY.
+    jina_reader_concurrency: int = 60
+    jina_search_concurrency: int = 8
     # Strip noise but KEEP nav (link discovery) + footer (B2B/wholesale/"powered
     # by" signals). Removes videos, cookie banners, popups, newsletter modals.
     jina_remove_selector: str = (
