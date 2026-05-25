@@ -113,12 +113,60 @@ class ContentScraper:
     async def scrape_single(self, url: str) -> str | None:
         """
         Scrape content from a single URL.
-        
+
         Args:
             url: URL to scrape
-            
+
         Returns:
             Extracted text content or None if failed
         """
         results = await self.scrape_urls([url])
         return results.get(url)
+
+    @staticmethod
+    def _extract_jsonld(soup) -> str:
+        """Pull product/structured data from <script type=ld+json> — many
+        ecommerce sites put their product names/prices here even when the
+        visible HTML is sparse."""
+        import json as _json
+        out = []
+        for tag in soup.find_all("script", attrs={"type": "application/ld+json"}):
+            raw = tag.string or tag.get_text() or ""
+            if not raw.strip():
+                continue
+            try:
+                _json.loads(raw)  # validate
+                out.append(raw.strip()[:4000])
+            except Exception:
+                continue
+        return "\n".join(out)[:8000]
+
+    async def scrape_fast(self, url: str, timeout: float = 18.0) -> str:
+        """
+        FAST custom fallback (no browser): grab the first page via httpx, strip
+        scripts/styles/images/videos/iframes, keep text + nav + footer (B2B
+        signals), and append JSON-LD structured data. ~1-3s. Raises on failure.
+        """
+        async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
+            log_request(logger, "GET", url, extra={"provider": "custom-fast"})
+            resp = await client.get(url, headers=self._get_headers())
+            resp.raise_for_status()
+
+        soup = BeautifulSoup(resp.text, "lxml")
+        jsonld = self._extract_jsonld(soup)  # BEFORE we strip scripts
+        # strip noise: scripts/styles/media/embeds (KEEP nav + footer)
+        for el in soup(["script", "style", "noscript", "svg", "img", "picture",
+                        "source", "video", "audio", "iframe", "canvas", "template",
+                        "link", "meta"]):
+            el.decompose()
+
+        text = self._clean_text(soup.get_text(separator="\n"))
+        combined = text
+        if jsonld:
+            combined = f"{text}\n\n[STRUCTURED DATA / JSON-LD]\n{jsonld}"
+
+        if not combined or len(combined) < 50:
+            raise ValueError(f"custom-fast got insufficient content for {url}: {len(combined)} chars")
+
+        logger.info(f"[Custom Fast] Scraped {len(combined)} chars from {url}")
+        return combined[:20000]

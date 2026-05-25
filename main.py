@@ -1216,6 +1216,144 @@ async def scrape_jina_agent(request: JinaSmartRequest):
                 "forced_final": False, "error": str(e), "raw_text": None}
 
 
+@app.post("/scrape/spider")
+async def scrape_spider(request: JinaSmartRequest):
+    """
+    Spider.cloud-backed scraper. Crawls N pages of the company website (smart
+    mode: JS rendering when needed) and either returns the raw markdown OR
+    extracts JSON via the mix LLM pool when prompt_extract is provided.
+
+    Request: { website (required), prompt_extract (optional), ai_provider (optional) }
+    Never throws — returns NOTFOUND + error on any failure.
+    """
+    request.normalize()
+
+    # Website is REQUIRED for /scrape/spider (no point crawling without it)
+    WEBSITE_KEYS = (
+        "website", "url", "domain", "website_url", "site", "homepage",
+        "company_website", "web", "company_url", "company_domain",
+    )
+    website_url = ""
+    for key in WEBSITE_KEYS:
+        if request.data.get(key):
+            website_url = request.data[key].strip()
+            break
+    if not website_url:
+        for v in request.data.values():
+            s = str(v).strip()
+            if (s.startswith(("http://", "https://")) or re.match(r"^[\w.-]+\.[a-z]{2,}(/|$)", s, re.I)) \
+                    and "linkedin.com" not in s.lower():
+                website_url = s
+                break
+    if not website_url:
+        raise HTTPException(status_code=422, detail="website is required (data.website or top-level website/url)")
+
+    prompt_extract = request.prompt_extract or request.data.get("prompt_extract", "")
+    provider = request.ai_provider or "gemini"
+
+    from scraper.spider_scraper import SpiderScraper
+    spider = SpiderScraper()
+
+    settings = get_settings()
+    pages_per_site = settings.spider_pages_per_site
+    timeout = float(settings.spider_timeout_seconds)
+
+    logger.info(f"[Spider] Starting (provider={provider}) website={website_url} limit={pages_per_site}")
+
+    def _empty(error: str | None) -> dict:
+        return {
+            "extracted_answer": "NOTFOUND" if prompt_extract else None,
+            "raw_markdown": None,
+            "page_urls": [],
+            "spider_pages": 0,
+            "total_content_length": 0,
+            "provider": provider if prompt_extract else None,
+            "total_tokens": 0,
+            "error": error,
+            "raw_text": None,
+        }
+
+    # ── Step 1: crawl via Spider ─────────────────────────────────────────────
+    try:
+        crawled = await asyncio.wait_for(
+            spider.crawl_site(website_url, limit=pages_per_site),
+            timeout=timeout,
+        )
+    except asyncio.TimeoutError:
+        logger.warning(f"[Spider] crawl timeout after {timeout}s for {website_url}")
+        return _empty(f"spider crawl timeout after {timeout}s")
+    except Exception as e:
+        logger.error(f"[Spider] crawl failed for {website_url}: {e}")
+        return _empty(str(e))
+
+    if not crawled:
+        return _empty("spider returned no pages")
+
+    combined_markdown = "\n\n---\n\n".join(
+        f"[URL: {u}]\n{c}" for u, c in crawled.items()
+    )
+
+    # ── Step 2a: no prompt → return raw markdown (no LLM call) ───────────────
+    if not prompt_extract:
+        return {
+            "extracted_answer": None,
+            "raw_markdown": combined_markdown,
+            "page_urls": list(crawled.keys()),
+            "spider_pages": len(crawled),
+            "total_content_length": len(combined_markdown),
+            "provider": None,
+            "total_tokens": 0,
+            "error": None,
+            "raw_text": None,
+        }
+
+    # ── Step 2b: prompt provided → one LLM extract via the mix pool ──────────
+    try:
+        ai_client = get_ai_client(provider)
+        resp = await ai_client.extract_answer(crawled, prompt_extract)
+    except Exception as e:
+        logger.error(f"[Spider] LLM extract failed: {e}")
+        return {**_empty(f"llm extract failed: {e}"),
+                "raw_markdown": combined_markdown,
+                "page_urls": list(crawled.keys()),
+                "spider_pages": len(crawled),
+                "total_content_length": len(combined_markdown)}
+
+    # Canonical JSON parse (handles ```json fences, embedded blocks)
+    raw_text = (resp.content or "").strip()
+    text = raw_text
+    if text.startswith("```"):
+        text = text[text.index("\n") + 1:] if "\n" in text else text[3:]
+    if text.endswith("```"):
+        text = text[:text.rfind("```")]
+    text = text.strip()
+
+    parsed = None
+    try:
+        v = json.loads(text)
+        parsed = v if isinstance(v, dict) else {"value": v}
+    except (json.JSONDecodeError, ValueError):
+        m = re.search(r"\{.*\}", text, re.DOTALL)
+        if m:
+            try:
+                v = json.loads(m.group(0))
+                parsed = v if isinstance(v, dict) else {"value": v}
+            except (json.JSONDecodeError, ValueError):
+                pass
+
+    return {
+        "extracted_answer": parsed if parsed is not None else "NOTFOUND",
+        "raw_markdown": combined_markdown,
+        "page_urls": list(crawled.keys()),
+        "spider_pages": len(crawled),
+        "total_content_length": len(combined_markdown),
+        "provider": ai_client.model_type if hasattr(ai_client, "model_type") else provider,
+        "total_tokens": (resp.input_tokens or 0) + (resp.output_tokens or 0),
+        "error": None if parsed is not None else "model returned no parseable JSON",
+        "raw_text": None if parsed is not None else raw_text[:2000],
+    }
+
+
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}

@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     # (not truncates). Keeps monster pages from blowing the Gemini TPM. Generous
     # default so normal product pages pass; only giant pages get rejected.
     jina_token_budget: int = 60000
-    jina_timeout: int = 15  # seconds Jina waits for the page to load
+    jina_timeout: int = 25  # seconds Jina waits; on failure we fall back to custom-fast (18s)
     # Global Jina concurrency caps (shared by pipeline AND agent). Reader has a
     # high RPM ceiling (~5000) so we can be generous; Search is tighter, keep low.
     # Raise via JINA_READER_CONCURRENCY / JINA_SEARCH_CONCURRENCY.
@@ -40,6 +40,13 @@ class Settings(BaseSettings):
     # lower only if you start hitting Gemini TPM again.
     agent_concurrency: int = 30
     agent_timeout_seconds: int = 110  # keep under Railway's edge proxy timeout
+
+    # Spider.cloud (https://spider.cloud) — JS-rendering scraper, the /scrape/spider endpoint
+    spider_api_key: str = ""
+    spider_base_url: str = "https://api.spider.cloud"
+    spider_pages_per_site: int = 4  # how many pages /crawl pulls per site
+    spider_concurrency: int = 30    # concurrent rows hitting Spider
+    spider_timeout_seconds: int = 60  # outer per-row cap for /scrape/spider
 
     gpt_model: str = "openai/gpt-4o-mini"
     claude_model: str = "anthropic/claude-3.5-sonnet"

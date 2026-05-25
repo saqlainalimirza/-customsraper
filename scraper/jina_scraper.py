@@ -112,13 +112,20 @@ class JinaScraper:
 
     async def scrape_url(self, url: str, keep_links: bool = False) -> str:
         """
-        Fetch a single URL via Jina Reader and return clean text.
-        If keep_links=True, returns markdown with [text](url) links intact.
-        Raises ValueError if content is insufficient.
+        Fetch a URL via Jina Reader; if Jina fails/stalls/returns junk, fall back
+        to our FAST custom scraper (httpx + BeautifulSoup, ~1-3s). This is what
+        recovers the sites Jina gets stuck on. Raises only if BOTH fail.
         """
-        url = strip_tracking_params(url)  # avoid scraping the same page under srsltid variants
-        jina_url = f"{JINA_READER_BASE}{url}"
+        url = strip_tracking_params(url)
+        try:
+            return await self._scrape_via_jina(url, keep_links)
+        except Exception as e:
+            logger.warning(f"[Jina] failed for {url} ({e}) — falling back to custom-fast scraper")
+            from .content import ContentScraper
+            return await ContentScraper().scrape_fast(url, timeout=18.0)
 
+    async def _scrape_via_jina(self, url: str, keep_links: bool = False) -> str:
+        jina_url = f"{JINA_READER_BASE}{url}"
         _client_timeout = float(self.settings.jina_timeout) + 5.0  # above Jina's own timeout
         async with _READER_SEMAPHORE:
             async with httpx.AsyncClient(timeout=_client_timeout, follow_redirects=True) as client:
