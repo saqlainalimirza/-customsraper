@@ -1260,6 +1260,17 @@ async def scrape_spider(request: JinaSmartRequest):
 
     logger.info(f"[Spider] Starting (provider={provider}) website={website_url} limit={pages_per_site}")
 
+    # Echo back the inputs we actually received (for debugging Clay merge issues).
+    # Prompt is truncated to its first 4 lines so the response stays readable.
+    received_prompt_preview = (
+        "\n".join((prompt_extract or "").splitlines()[:4]).strip()
+        if prompt_extract else None
+    )
+    received_inputs = {
+        "website": website_url,
+        "prompt_extract_preview": received_prompt_preview,  # first 4 lines only
+    }
+
     def _empty(error: str | None) -> dict:
         return {
             "extracted_answer": "NOTFOUND" if prompt_extract else None,
@@ -1267,6 +1278,7 @@ async def scrape_spider(request: JinaSmartRequest):
             "page_urls": [],
             "spider_pages": 0,
             "total_content_length": 0,
+            "received_inputs": received_inputs,
             "provider": provider if prompt_extract else None,
             "total_tokens": 0,
             "error": error,
@@ -1287,7 +1299,21 @@ async def scrape_spider(request: JinaSmartRequest):
         return _empty(str(e))
 
     if not crawled:
-        return _empty("spider returned no pages")
+        logger.info(f"[Spider] /crawl empty for {website_url} — falling back to /scrape on homepage")
+        try:
+            crawled = await asyncio.wait_for(
+                spider.scrape_url(website_url),
+                timeout=timeout,
+            )
+        except asyncio.TimeoutError:
+            logger.warning(f"[Spider] /scrape fallback timeout after {timeout}s for {website_url}")
+            return _empty(f"spider scrape fallback timeout after {timeout}s")
+        except Exception as e:
+            logger.error(f"[Spider] /scrape fallback failed for {website_url}: {e}")
+            return _empty(f"spider scrape fallback failed: {e}")
+
+        if not crawled:
+            return _empty("spider crawl and scrape both returned no pages")
 
     combined_markdown = "\n\n---\n\n".join(
         f"[URL: {u}]\n{c}" for u, c in crawled.items()
@@ -1301,6 +1327,7 @@ async def scrape_spider(request: JinaSmartRequest):
             "page_urls": list(crawled.keys()),
             "spider_pages": len(crawled),
             "total_content_length": len(combined_markdown),
+            "received_inputs": received_inputs,
             "provider": None,
             "total_tokens": 0,
             "error": None,
@@ -1347,6 +1374,7 @@ async def scrape_spider(request: JinaSmartRequest):
         "page_urls": list(crawled.keys()),
         "spider_pages": len(crawled),
         "total_content_length": len(combined_markdown),
+        "received_inputs": received_inputs,
         "provider": ai_client.model_type if hasattr(ai_client, "model_type") else provider,
         "total_tokens": (resp.input_tokens or 0) + (resp.output_tokens or 0),
         "error": None if parsed is not None else "model returned no parseable JSON",
