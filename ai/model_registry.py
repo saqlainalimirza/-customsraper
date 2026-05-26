@@ -38,11 +38,11 @@ _ALIASES = {
 }
 
 # "mix"/"openrouter"/"auto" → round-robin across these 5 (3 providers: Google,
-# xAI, OpenAI). No Anthropic — too expensive. Spreads load so no single rate
-# limit bottlenecks the batch.
+# xAI, OpenAI). Cheap models only — dropped full GPT-4.1 ($2/$8 per 1M) for the
+# nano/mini variants. Spreads load so no single rate limit bottlenecks the batch.
 _MIX_POOL = [
     "gemini-flash", "gemini-flashlite", "grok",
-    "gpt-4.1", "gpt-4.1-mini",
+    "gpt-4.1-mini", "gpt-4.1-nano",
 ]
 _mix_cycle = itertools.cycle(_MIX_POOL)
 
