@@ -46,7 +46,10 @@ class Settings(BaseSettings):
     spider_base_url: str = "https://api.spider.cloud"
     spider_pages_per_site: int = 4  # how many pages /crawl pulls per site
     spider_concurrency: int = 30    # concurrent rows hitting Spider
-    spider_timeout_seconds: int = 60  # outer per-row cap for /scrape/spider
+    spider_timeout_seconds: int = 120  # outer per-row cap for /scrape/spider
+    # Premium proxy type. "residential" = real-user IPs (recommended default),
+    # "mobile" = 4G/5G (max stealth, pricier), "isp" = datacenter (cheapest).
+    spider_proxy_type: str = "residential"
 
     gpt_model: str = "openai/gpt-4o-mini"
     claude_model: str = "anthropic/claude-3.5-sonnet"

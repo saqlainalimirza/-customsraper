@@ -67,12 +67,13 @@ class SpiderScraper:
             "request": mode,
             "return_format": return_format,
             "proxy_enabled": True,
+            "proxy_type": self.settings.spider_proxy_type,  # premium (residential by default)
         }
 
         timeout = float(self.settings.spider_timeout_seconds)
         async with _SPIDER_SEMAPHORE:
             async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
-                log_request(logger, "POST", endpoint, extra={"provider": "spider", "url": url, "limit": limit})
+                log_request(logger, "POST", endpoint, extra={"provider": "spider", "url": url, "limit": limit, "proxy_type": self.settings.spider_proxy_type})
                 try:
                     r = await client.post(endpoint, headers=headers, json=payload)
                     r.raise_for_status()
@@ -135,12 +136,13 @@ class SpiderScraper:
             "request": mode,
             "return_format": return_format,
             "proxy_enabled": True,
+            "proxy_type": self.settings.spider_proxy_type,  # premium (residential by default)
         }
 
         timeout = float(self.settings.spider_timeout_seconds)
         async with _SPIDER_SEMAPHORE:
             async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
-                log_request(logger, "POST", endpoint, extra={"provider": "spider-scrape", "url": url})
+                log_request(logger, "POST", endpoint, extra={"provider": "spider-scrape", "url": url, "proxy_type": self.settings.spider_proxy_type})
                 try:
                     r = await client.post(endpoint, headers=headers, json=payload)
                     r.raise_for_status()
