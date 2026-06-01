@@ -1283,6 +1283,9 @@ async def scrape_spider(request: JinaSmartRequest):
             "total_tokens": 0,
             "error": error,
             "raw_text": None,
+            # surface Spider's actual HTTP response (status + body snippet) so
+            # the API caller can see WHY Spider returned nothing
+            "spider_debug": dict(getattr(spider, "last_call_debug", {}) or {}),
         }
 
     # ── Step 1: crawl via Spider ─────────────────────────────────────────────
@@ -1332,6 +1335,7 @@ async def scrape_spider(request: JinaSmartRequest):
             "total_tokens": 0,
             "error": None,
             "raw_text": None,
+            "spider_debug": dict(getattr(spider, "last_call_debug", {}) or {}),
         }
 
     # ── Step 2b: prompt provided → one LLM extract via the mix pool ──────────
@@ -1379,6 +1383,7 @@ async def scrape_spider(request: JinaSmartRequest):
         "total_tokens": (resp.input_tokens or 0) + (resp.output_tokens or 0),
         "error": None if parsed is not None else "model returned no parseable JSON",
         "raw_text": None if parsed is not None else raw_text[:2000],
+        "spider_debug": dict(getattr(spider, "last_call_debug", {}) or {}),
     }
 
 

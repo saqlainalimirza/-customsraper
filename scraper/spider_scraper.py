@@ -25,6 +25,10 @@ class SpiderScraper:
 
     def __init__(self):
         self.settings = get_settings()
+        # Captures the last Spider HTTP call's status + response snippet so the
+        # endpoint can surface it. Critical for debugging "Spider returned nothing":
+        # we no longer have to guess — the API response shows exactly what Spider said.
+        self.last_call_debug: dict = {}
 
     @staticmethod
     def _normalize_url(domain_or_url: str) -> str:
@@ -70,6 +74,7 @@ class SpiderScraper:
         }
 
         timeout = float(self.settings.spider_timeout_seconds)
+        r = None
         async with _SPIDER_SEMAPHORE:
             async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
                 log_request(logger, "POST", endpoint, extra={"provider": "spider", "url": url, "limit": limit})
@@ -77,18 +82,36 @@ class SpiderScraper:
                     r = await client.post(endpoint, headers=headers, json=payload)
                     r.raise_for_status()
                 except Exception as e:
-                    logger.warning(f"[Spider] /crawl failed for {url}: {e}")
+                    self.last_call_debug = {
+                        "endpoint": "/crawl", "url": url,
+                        "status": getattr(r, "status_code", None),
+                        "error": str(e),
+                        "response_snippet": (r.text[:500] if r is not None else None),
+                    }
+                    logger.warning(f"[Spider] /crawl failed for {url}: {e} | body: {(r.text[:200] if r is not None else 'no response')}")
                     return {}
 
                 try:
                     data = r.json()
                 except Exception:
+                    self.last_call_debug = {
+                        "endpoint": "/crawl", "url": url,
+                        "status": r.status_code,
+                        "error": "non-JSON response",
+                        "response_snippet": r.text[:500],
+                    }
                     logger.warning(f"[Spider] non-JSON response for {url}: {r.text[:200]}")
                     return {}
 
         # Spider returns a list of page objects, or {"data": [...]}.
         items = data.get("data", data) if isinstance(data, dict) else data
         if not isinstance(items, list):
+            self.last_call_debug = {
+                "endpoint": "/crawl", "url": url,
+                "status": r.status_code,
+                "error": "unexpected response shape",
+                "response_snippet": str(data)[:500],
+            }
             logger.warning(f"[Spider] unexpected response shape for {url}: {str(data)[:200]}")
             return {}
 
@@ -103,7 +126,15 @@ class SpiderScraper:
             # cap each page so a giant blog doesn't blow context
             out[page_url] = str(content)[:20000]
 
-        logger.info(f"[Spider] {url} → {len(out)} pages crawled")
+        self.last_call_debug = {
+            "endpoint": "/crawl", "url": url,
+            "status": r.status_code,
+            "pages_returned": len(out),
+            "items_in_response": len(items) if isinstance(items, list) else 0,
+            # snippet only when empty so we can see WHY there were no pages
+            "response_snippet": (str(data)[:500] if not out else None),
+        }
+        logger.info(f"[Spider] {url} → {len(out)} pages crawled (status {r.status_code})")
         return out
 
     async def scrape_url(
@@ -138,6 +169,7 @@ class SpiderScraper:
         }
 
         timeout = float(self.settings.spider_timeout_seconds)
+        r = None
         async with _SPIDER_SEMAPHORE:
             async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
                 log_request(logger, "POST", endpoint, extra={"provider": "spider-scrape", "url": url})
@@ -145,12 +177,24 @@ class SpiderScraper:
                     r = await client.post(endpoint, headers=headers, json=payload)
                     r.raise_for_status()
                 except Exception as e:
-                    logger.warning(f"[Spider] /scrape failed for {url}: {e}")
+                    self.last_call_debug = {
+                        "endpoint": "/scrape", "url": url,
+                        "status": getattr(r, "status_code", None),
+                        "error": str(e),
+                        "response_snippet": (r.text[:500] if r is not None else None),
+                    }
+                    logger.warning(f"[Spider] /scrape failed for {url}: {e} | body: {(r.text[:200] if r is not None else 'no response')}")
                     return {}
 
                 try:
                     data = r.json()
                 except Exception:
+                    self.last_call_debug = {
+                        "endpoint": "/scrape", "url": url,
+                        "status": r.status_code,
+                        "error": "non-JSON response",
+                        "response_snippet": r.text[:500],
+                    }
                     logger.warning(f"[Spider] /scrape non-JSON for {url}: {r.text[:200]}")
                     return {}
 
@@ -158,6 +202,12 @@ class SpiderScraper:
         if isinstance(items, dict):
             items = [items]
         if not isinstance(items, list):
+            self.last_call_debug = {
+                "endpoint": "/scrape", "url": url,
+                "status": r.status_code,
+                "error": "unexpected response shape",
+                "response_snippet": str(data)[:500],
+            }
             logger.warning(f"[Spider] /scrape unexpected shape for {url}: {str(data)[:200]}")
             return {}
 
@@ -171,5 +221,12 @@ class SpiderScraper:
                 continue
             out[page_url] = str(content)[:20000]
 
-        logger.info(f"[Spider] {url} → /scrape returned {len(out)} page(s)")
+        self.last_call_debug = {
+            "endpoint": "/scrape", "url": url,
+            "status": r.status_code,
+            "pages_returned": len(out),
+            "items_in_response": len(items) if isinstance(items, list) else 0,
+            "response_snippet": (str(data)[:500] if not out else None),
+        }
+        logger.info(f"[Spider] {url} → /scrape returned {len(out)} page(s) (status {r.status_code})")
         return out
